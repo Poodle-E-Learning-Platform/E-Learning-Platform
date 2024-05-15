@@ -1,10 +1,7 @@
-from fastapi import APIRouter, Header
-from pydantic import BaseModel
-from services import users_service
-from data.models import User, LoginInformation
+from fastapi import HTTPException, APIRouter, Depends, Header
+from data.models import LoginInformation, RegistrationInformation
 from common.responses import BadRequest
-from common.authentication import get_user_or_raise_401
-
+from services import users_service
 
 users_router = APIRouter(prefix="/users")
 
@@ -13,21 +10,22 @@ users_router = APIRouter(prefix="/users")
 async def user_login(data: LoginInformation):
     user = users_service.try_login(data.username, data.password)
     if user:
-        token = users_service.create_token(user)
+        token = users_service.create_jwt_token(user.id, user.username)
         return {"token": token}
-
     return BadRequest("Login information not valid!")
 
 
 @users_router.get("/info")
 async def user_info(token: str = Header()):
-    user = get_user_or_raise_401(token)
-
-    return {"id": user.id, "username": user.username, "is_admin": user.is_admin}
+    payload = users_service.verify_jwt_token(token)
+    if payload:
+        user = users_service.get_by_id(payload["user_id"])
+        if user:
+            return {"id": user.id, "username": user.username, "is_admin": user.is_admin}
+    raise HTTPException(status_code=401, detail="Invalid token")
 
 
 @users_router.post("/register")
-async def register_user(data: LoginInformation):
+async def register_user(data: RegistrationInformation):
     user = users_service.create(data.username, data.password, data.email, data.name)
-
     return user if user else BadRequest(f'Username "{data.username}" is already taken!')
