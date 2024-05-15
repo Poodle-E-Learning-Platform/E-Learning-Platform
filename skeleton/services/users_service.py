@@ -3,6 +3,7 @@ from data.models import User
 from mariadb import IntegrityError
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
+from common.responses import Conflict
 import secrets
 import bcrypt
 
@@ -11,6 +12,8 @@ SECRET_KEY = secrets.token_hex(32)
 ALGORITHM = "HS256"
 
 TOKEN_EXPIRATION_MINUTES = 30
+
+blacklisted_tokens = {}
 
 
 def create(username: str, password: str, email: str, name: str) -> User | None:
@@ -41,6 +44,15 @@ def try_login(username: str, password: str) -> User | None:
     if user and user.password == password:
         return user
     return None
+
+
+def add_token_to_blacklist(token: str):
+    if token not in blacklisted_tokens:
+        blacklisted_tokens[token] = True
+
+
+def is_token_blacklisted(token: str) -> bool:
+    return token in blacklisted_tokens
 
 
 def create_jwt_token(user_id: int, username: str) -> str:

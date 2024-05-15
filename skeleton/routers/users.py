@@ -1,6 +1,6 @@
 from fastapi import HTTPException, APIRouter, Depends, Header
 from data.models import LoginInformation, RegistrationInformation
-from common.responses import BadRequest
+from common.responses import BadRequest, Unauthorized
 from services import users_service
 
 users_router = APIRouter(prefix="/users")
@@ -13,6 +13,18 @@ async def user_login(data: LoginInformation):
         token = users_service.create_jwt_token(user.id, user.username)
         return {"token": token}
     return BadRequest("Login information not valid!")
+
+
+@users_router.post("/logout")
+async def user_logout(token: str = Header()):
+    if not users_service.is_authenticated(token):
+        return Unauthorized(content="Invalid token!")
+
+    if users_service.is_token_blacklisted(token):
+        return Unauthorized(content="User already logged out!")
+
+    users_service.add_token_to_blacklist(token)
+    return {"message": "User successfully logged out!"}
 
 
 @users_router.get("/info")
