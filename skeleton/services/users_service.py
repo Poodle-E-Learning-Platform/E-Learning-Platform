@@ -15,17 +15,6 @@ TOKEN_EXPIRATION_MINUTES = 30
 blacklisted_tokens = {}
 
 
-# def create(username: str, password: str, email: str, name: str) -> User | None:
-#     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-#     try:
-#         generated_id = insert_query(
-#             """insert into users(username, password, email, name) values (?,?,?,?)""",
-#             (username, hashed_password.decode('utf-8'), email, name))
-#         return User(id=generated_id, username=username, password=hashed_password.decode('utf-8'), email=email, name=name, is_admin=False)
-#     except IntegrityError:
-#         return None
-
-
 def create_teacher(data: TeacherRegistration) -> Teacher | None:
     hashed_password = bcrypt.hashpw(data.password.encode('utf-8'), bcrypt.gensalt())
     try:

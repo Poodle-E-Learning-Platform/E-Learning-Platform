@@ -1,4 +1,4 @@
-from fastapi import HTTPException, APIRouter, Depends, Header
+from fastapi import APIRouter, Header
 from data.models import LoginInformation, TeacherRegistration, StudentRegistration
 from common.responses import BadRequest, Unauthorized
 from services import users_service

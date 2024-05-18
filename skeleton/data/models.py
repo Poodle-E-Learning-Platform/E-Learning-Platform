@@ -168,10 +168,3 @@ class GetUser(BaseModel):
 class LoginInformation(BaseModel):
     email: str
     password: str
-
-
-# class RegistrationInformation(BaseModel): -> May be we need different registration forms for Teacher/Student/Admin
-#     email: str
-#     password: str
-
-
