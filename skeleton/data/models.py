@@ -8,7 +8,7 @@ class Section(BaseModel):
     content: str
     description: str | None = None
     external_resource: str | None = None
-    course_id = int
+    course_id: int
 
     @classmethod
     def from_query_result(cls, section_id, title, content, description, external_resource, course_id):
@@ -112,6 +112,15 @@ class Teacher(BaseModel):
         )
 
 
+class TeacherRegistration(BaseModel):
+    email: str = constr(pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+    first_name: str
+    last_name: str
+    password: str = constr(pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$")
+    phone_number: str | None = None
+    linkedin_account: str | None = None
+
+
 class Student(BaseModel):
     student_id: int
     users_user_id: int
@@ -137,6 +146,13 @@ class Student(BaseModel):
         )
 
 
+class StudentRegistration(BaseModel):
+    email: str = constr(pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+    first_name: str
+    last_name: str
+    password: str = constr(pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$")
+
+
 class GetUser(BaseModel):
     user_id: int
     email: str = constr(pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
@@ -159,89 +175,3 @@ class LoginInformation(BaseModel):
 #     password: str
 
 
-# class UserCategoryAccess(BaseModel):
-#     user_id: int
-#     username: str
-#     access_level: str
-#
-#     @classmethod
-#     def from_query_result(cls, user_id, username, access_level):
-#         return cls(user_id=user_id,
-#                    username=username,
-#                    access_level=access_level
-#                    )
-
-
-# ===============================================================================================================
-
-# class Reply(BaseModel):
-#     id: int
-#     text: str
-#     topic_id: int
-#     user_id: int
-#     creation_date: datetime
-#
-#     @classmethod
-#     def from_query_result(cls, reply_id, text, topic_id, user_id, creation_date):
-#         return cls(
-#             id=reply_id,
-#             text=text,
-#             topic_id=topic_id,
-#             user_id=user_id,
-#             creation_date=creation_date
-#         )
-#
-#
-# class CreateReply(BaseModel):
-#     text: str
-#
-#
-# class ChooseBestReply(BaseModel):
-#     reply_id: int
-#
-#
-# class ReplyWithVotes(BaseModel):
-#     id: int
-#     text: str
-#     topic_id: int
-#     user_id: int
-#     creation_date: datetime
-#     vote_type: int
-#
-#
-# class TopicWithReplies(BaseModel):
-#     category_id: int
-#     title: str
-#     user_id: int
-#     best_reply: int | None
-#     is_locked: bool
-#     replies: list[Reply | None]
-#
-#
-# class Vote(BaseModel):
-#     id: int
-#     reply_id: int
-#     user_id: int
-#     vote_type: bool | None
-#
-#
-# class Message(BaseModel):
-#     id: int
-#     text: str
-#     sender_id: int
-#     receiver_id: int
-#     creation_date: datetime
-#
-#     @classmethod
-#     def from_query_result(cls, message_id, text, sender_id, receiver_id, creation_date):
-#         return cls(
-#             id=message_id,
-#             text=text,
-#             sender_id=sender_id,
-#             receiver_id=receiver_id,
-#             creation_date=creation_date
-#         )
-#
-#
-# class CreateMessage(BaseModel):
-#     text: str

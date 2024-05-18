@@ -1,5 +1,5 @@
 from fastapi import HTTPException, APIRouter, Depends, Header
-from data.models import LoginInformation, RegistrationInformation
+from data.models import LoginInformation, TeacherRegistration, StudentRegistration
 from common.responses import BadRequest, Unauthorized
 from services import users_service
 
@@ -8,11 +8,11 @@ users_router = APIRouter(prefix="/users")
 
 @users_router.post("/login")
 async def user_login(data: LoginInformation):
-    user = users_service.try_login(data.username, data.password)
+    user = users_service.try_login(data.email, data.password)
     if user:
-        token = users_service.create_jwt_token(user.id, user.username)
+        token = users_service.create_jwt_token(user.user_id, user.email)
         return {"token": token}
-    return BadRequest("Login information not valid!")
+    return BadRequest("Incorrect e-mail or password!")
 
 
 @users_router.post("/logout")
@@ -33,11 +33,17 @@ async def user_info(token: str = Header()):
     if payload:
         user = users_service.get_by_id(payload["user_id"])
         if user:
-            return {"id": user.id, "username": user.username, "is_admin": user.is_admin}
-    raise HTTPException(status_code=401, detail="Invalid token")
+            return {"id": user.user_id, "email": user.email}
+    return Unauthorized(content="Invalid token!")
 
 
-@users_router.post("/register")
-async def register_user(data: RegistrationInformation):
-    user = users_service.create(data.username, data.password, data.email, data.name)
-    return user if user else BadRequest(f'Username "{data.username}" is already taken!')
+@users_router.post("/register/teacher")
+async def register_teacher(data: TeacherRegistration):
+    user = users_service.create_teacher(data)
+    return user if user else BadRequest(f'E-mail "{data.email}" is already in use!')
+
+
+@users_router.post("/register/student")
+async def register_student(data: StudentRegistration):
+    user = users_service.create_student(data)
+    return user if user else BadRequest(content=f'E-mail "{data.email}" is already in use!')
