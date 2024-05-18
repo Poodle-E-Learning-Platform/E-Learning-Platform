@@ -21,7 +21,7 @@ USE `learning_platform` ;
 -- Table `learning_platform`.`users`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `learning_platform`.`users` (
-  `user_id` INT(11) NOT NULL,
+  `user_id` INT(11) NOT NULL AUTO_INCREMENT,
   `email` VARCHAR(45) NULL,
   `password` VARCHAR(45) NOT NULL,
   `is_admin` TINYINT NULL DEFAULT 0,
@@ -35,7 +35,7 @@ ENGINE = InnoDB;
 -- Table `learning_platform`.`teachers`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `learning_platform`.`teachers` (
-  `user_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `teacher_id` INT(11) NOT NULL AUTO_INCREMENT,
   `email` VARCHAR(255) NOT NULL,
   `first_name` VARCHAR(100) NOT NULL,
   `last_name` VARCHAR(100) NOT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS `learning_platform`.`teachers` (
   `phone_number` VARCHAR(20) NULL DEFAULT NULL,
   `linkedin_account` VARCHAR(255) NULL DEFAULT NULL,
   `users_user_id` INT NOT NULL,
-  PRIMARY KEY (`user_id`),
+  PRIMARY KEY (`teacher_id`),
   UNIQUE INDEX `email` (`email` ASC) VISIBLE,
   INDEX `fk_teachers_users1_idx` (`users_user_id` ASC) VISIBLE,
   CONSTRAINT `fk_teachers_users1`
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS `learning_platform`.`courses` (
   INDEX `owner_id` (`owner_id` ASC) VISIBLE,
   CONSTRAINT `courses_ibfk_1`
     FOREIGN KEY (`owner_id`)
-    REFERENCES `learning_platform`.`teachers` (`user_id`))
+    REFERENCES `learning_platform`.`teachers` (`teacher_id`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = latin1;
 
@@ -129,7 +129,7 @@ DEFAULT CHARACTER SET = latin1;
 -- Table `learning_platform`.`students`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `learning_platform`.`students` (
-  `student_id` INT(11) NOT NULL,
+  `student_id` INT(11) NOT NULL AUTO_INCREMENT,
   `users_user_id` INT(11) NOT NULL,
   `email` VARCHAR(255) NOT NULL,
   `first_name` VARCHAR(100) NOT NULL,
