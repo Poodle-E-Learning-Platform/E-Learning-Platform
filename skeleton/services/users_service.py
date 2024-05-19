@@ -114,3 +114,10 @@ def from_token(token: str) -> User | None:
     if payload:
         return find_by_email(payload.get("email"))
     return None
+
+
+def is_teacher(user_id: int) -> bool:
+    data = read_query(
+        """SELECT COUNT(*) FROM teachers WHERE users_user_id = ?""",
+        (user_id,))
+    return data[0][0] > 0
