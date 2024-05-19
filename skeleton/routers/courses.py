@@ -1,11 +1,30 @@
 from fastapi import APIRouter, Header
 from data.models import Course, CreateCourse, CourseWithSections
-from common.responses import BadRequest, Unauthorized, Forbidden
+from common.responses import BadRequest, Unauthorized, Forbidden, NotFound
 from services import courses_service, users_service
 from common.authentication import get_user_or_raise_401
 
 
 courses_router = APIRouter(prefix="/courses")
+
+
+@courses_router.get("/")
+def get_all_courses(token: str = Header()):
+    user = get_user_or_raise_401(token)
+
+    if users_service.is_token_blacklisted(token):
+        return Unauthorized(content="User is logged out! Login required to perform this task!")
+
+    if not users_service.is_teacher(user.user_id):
+        return Forbidden(content="User must be a teacher in order to view all courses!")
+
+    teacher = users_service.get_teacher_by_user_id(user.user_id)
+
+    courses = courses_service.get_all_courses(user.user_id)
+    if not courses:
+        return NotFound(content=f"Teacher with id:{teacher.teacher_id} has not created any courses yet")
+
+    return courses
 
 
 @courses_router.post("/")
