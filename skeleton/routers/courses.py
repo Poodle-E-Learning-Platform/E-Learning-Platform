@@ -12,8 +12,11 @@ courses_router = APIRouter(prefix="/courses")
 async def create_course(data: CreateCourse, token: str = Header()):
     user = get_user_or_raise_401(token)
 
+    if users_service.is_token_blacklisted(token):
+        return Unauthorized(content="User is logged out! Login required to perform this task!")
+
     if not users_service.is_teacher(user.user_id):
-        return Forbidden(content="User is not authorized to create a course")
+        return Forbidden(content="User is not authorized to create a course!")
 
     course = courses_service.create_course(data)
     if not course:
