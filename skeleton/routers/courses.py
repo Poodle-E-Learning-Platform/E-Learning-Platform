@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Header
-from data.models import Course, CreateCourse, CourseWithSections
+from fastapi import APIRouter, Header, HTTPException
+from data.models import Course, CreateCourse, CourseWithSections, UpdateCourse
 from common.responses import BadRequest, Unauthorized, Forbidden, NotFound
 from services import courses_service, users_service
 from common.authentication import get_user_or_raise_401
@@ -62,6 +62,25 @@ async def create_course(data: CreateCourse, token: str = Header()):
         return BadRequest(content="Course with this title already exists or other error occurred")
 
     return course
+
+
+@courses_router.put("/{course_id}")
+def update_course_details(course_id: int, data: UpdateCourse, token: str = Header()):
+    user = get_user_or_raise_401(token)
+
+    if users_service.is_token_blacklisted(token):
+        return Unauthorized(content="User is logged out! Login required to perform this task!")
+
+    if not users_service.is_teacher(user.user_id):
+        raise HTTPException(status_code=403, detail="User is not authorized! Only teachers that are owners"
+                                                    " can update a course!")
+
+    updated_course = courses_service.update_course(course_id, data, user.user_id)
+
+    if not updated_course:
+        raise HTTPException(status_code=404, detail=f"Course with id: {course_id} not found")
+
+    return updated_course
 
 # {
 #     "title":"English for Beginners",

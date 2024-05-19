@@ -56,6 +56,12 @@ class CreateCourse(BaseModel):
     objectives: str
 
 
+class UpdateCourse(BaseModel):
+    title: str = constr(pattern="^\w{1,50}$")
+    description: str
+    objectives: str
+
+
 class CourseWithSections(BaseModel):
     course_id: int
     title: str = constr(pattern="^\w{1,50}$")

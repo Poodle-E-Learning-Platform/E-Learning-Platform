@@ -1,5 +1,5 @@
-from data.database import insert_query, read_query
-from data.models import Course, CreateCourse, CourseWithSections, Section
+from data.database import insert_query, read_query, update_query
+from data.models import Course, CreateCourse, CourseWithSections, Section, UpdateCourse
 from mariadb import IntegrityError
 from services import users_service
 from common.responses import NotFound
@@ -97,5 +97,27 @@ def create_course(user_id: int, data: CreateCourse) -> Course | None | NotFound:
             return Course(course_id=course_id, title=data.title, description=data.description,
                           objectives=data.objectives, owner_id=owner_id)
         return None
+    except IntegrityError:
+        return None
+
+
+def update_course(course_id: int, data: UpdateCourse, user_id: int) -> Course | NotFound | None:
+    teacher = users_service.get_teacher_by_user_id(user_id)
+    if not teacher:
+        return NotFound(content="Teacher not found!")
+
+    course = get_course_by_id(teacher.users_user_id, course_id)
+
+    if not course:
+        return NotFound(content=f"Course with ID {course_id} not found.")
+
+    try:
+        update_query(
+            """UPDATE courses SET title = ?, description = ?, objectives = ? WHERE course_id = ? AND owner_id = ?""",
+            (data.title, data.description, data.objectives, course_id, teacher.teacher_id)
+        )
+
+        updated_course = get_course_by_id(user_id, course_id)
+        return updated_course
     except IntegrityError:
         return None
