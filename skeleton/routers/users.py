@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Header
 from data.models import LoginInformation, TeacherRegistration, StudentRegistration
-from common.responses import BadRequest, Unauthorized
+from common.responses import BadRequest, Unauthorized, NotFound
 from services import users_service
 
 users_router = APIRouter(prefix="/users")
@@ -47,3 +47,33 @@ async def register_teacher(data: TeacherRegistration):
 async def register_student(data: StudentRegistration):
     user = users_service.create_student(data)
     return user if user else BadRequest(content=f'E-mail "{data.email}" is already in use!')
+
+
+@users_router.get("/teacher/info")
+async def get_teacher_info(token: str = Header()):
+    if users_service.is_token_blacklisted(token):
+        return Unauthorized(content="User is logged out! Login required to perform this task!")
+
+    user = users_service.from_token(token)
+    if user:
+        teacher = users_service.get_teacher_by_user_id(user.user_id)
+        if teacher:
+            return teacher
+
+    return NotFound(content="Teacher not found!")
+
+
+@users_router.put("/teacher/info")
+async def update_teacher_info(data: dict, token: str = Header()):
+    if users_service.is_token_blacklisted(token):
+        return Unauthorized(content="User is logged out! Login required to perform this task!")
+
+    user = users_service.from_token(token)
+    if user:
+        updated_teacher = users_service.update_teacher_info(user.user_id, data)
+        if updated_teacher:
+            return updated_teacher
+
+    return BadRequest(content="Failed to update teacher information!")
+
+

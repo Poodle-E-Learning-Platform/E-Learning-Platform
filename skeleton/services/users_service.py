@@ -1,4 +1,4 @@
-from data.database import insert_query, read_query
+from data.database import insert_query, read_query, update_query
 from data.models import User, Teacher, Student, TeacherRegistration, StudentRegistration
 from common.responses import NotFound
 from mariadb import IntegrityError
@@ -119,6 +119,48 @@ def from_token(token: str) -> User | None:
 
 def is_teacher(user_id: int) -> bool:
     data = read_query(
-        """SELECT COUNT(*) FROM teachers WHERE users_user_id = ?""",
+        """select count(*) from teachers where users_user_id = ?""",
         (user_id,))
     return data[0][0] > 0
+
+
+def get_teacher_by_user_id(user_id: int) -> Teacher | None:
+    data = read_query(
+        """select * from teachers where users_user_id = ?""",
+        (user_id,))
+    return next((Teacher.from_query_result(*row) for row in data), None)
+
+
+def update_teacher_info(user_id: int, data: dict) -> Teacher | None:
+    fields = []
+    values = []
+
+    if "first_name" in data:
+        fields.append("first_name = ?")
+        values.append(data["first_name"])
+    if "last_name" in data:
+        fields.append("last_name = ?")
+        values.append(data["last_name"])
+    if "phone_number" in data:
+        fields.append("phone_number = ?")
+        values.append(data["phone_number"])
+    if "linkedin_account" in data:
+        fields.append("linkedin_account = ?")
+        values.append(data["linkedin_account"])
+    if "password" in data:
+        fields.append("password = ?")
+        values.append(data["password"])
+
+    if not fields:
+        return None
+
+    values.append(user_id)
+    update_query_str = f"""UPDATE teachers SET {', '.join(fields)} WHERE users_user_id = ?"""
+
+    try:
+        result = update_query(update_query_str, values)
+        if result:
+            return get_teacher_by_user_id(user_id)
+        return None
+    except IntegrityError:
+        return None
