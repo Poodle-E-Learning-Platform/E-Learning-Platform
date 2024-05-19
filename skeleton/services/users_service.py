@@ -132,35 +132,43 @@ def get_teacher_by_user_id(user_id: int) -> Teacher | None:
 
 
 def update_teacher_info(user_id: int, data: dict) -> Teacher | None:
-    fields = []
+    teacher_fields = []
+    user_fields = []
     values = []
 
     if "first_name" in data:
-        fields.append("first_name = ?")
+        teacher_fields.append("first_name = ?")
         values.append(data["first_name"])
     if "last_name" in data:
-        fields.append("last_name = ?")
+        teacher_fields.append("last_name = ?")
         values.append(data["last_name"])
     if "phone_number" in data:
-        fields.append("phone_number = ?")
+        teacher_fields.append("phone_number = ?")
         values.append(data["phone_number"])
     if "linkedin_account" in data:
-        fields.append("linkedin_account = ?")
+        teacher_fields.append("linkedin_account = ?")
         values.append(data["linkedin_account"])
     if "password" in data:
-        fields.append("password = ?")
+        teacher_fields.append("password = ?")
+        user_fields.append("password = ?")
         values.append(data["password"])
 
-    if not fields:
+    if not teacher_fields and not user_fields:
         return None
 
-    values.append(user_id)
-    update_query_str = f"""UPDATE teachers SET {', '.join(fields)} WHERE users_user_id = ?"""
+    teacher_values = values[:]
+    teacher_values.append(user_id)
 
     try:
-        result = update_query(update_query_str, values)
-        if result:
-            return get_teacher_by_user_id(user_id)
-        return None
+        if teacher_fields:
+            update_query_str = f"""UPDATE teachers SET {', '.join(teacher_fields)} WHERE users_user_id = ?"""
+            update_query(update_query_str, tuple(teacher_values))
+
+        if user_fields:
+            user_values = (data["password"], user_id)
+            update_user_query_str = f"""UPDATE users SET {', '.join(user_fields)} WHERE user_id = ?"""
+            update_query(update_user_query_str, user_values)
+
+        return get_teacher_by_user_id(user_id)
     except IntegrityError:
         return None

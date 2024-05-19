@@ -54,7 +54,6 @@ class CreateCourse(BaseModel):
     title: str = constr(pattern="^\w{1,50}$")
     description: str
     objectives: str
-    owner_id: int
 
 
 class CourseWithSections(BaseModel):
