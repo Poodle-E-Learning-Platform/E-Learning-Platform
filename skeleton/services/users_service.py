@@ -131,6 +131,13 @@ def get_teacher_by_user_id(user_id: int) -> Teacher | None:
     return next((Teacher.from_query_result(*row) for row in data), None)
 
 
+def get_student_by_user_id(user_id: int) -> Student | None:
+    data = read_query(
+        """select * from students where users_user_id = ?""",
+        (user_id,))
+    return next((Student.from_query_result(*row) for row in data), None)
+
+
 def update_teacher_info(user_id: int, data: dict) -> Teacher | None:
     teacher_fields = []
     user_fields = []
@@ -170,5 +177,42 @@ def update_teacher_info(user_id: int, data: dict) -> Teacher | None:
             update_query(update_user_query_str, user_values)
 
         return get_teacher_by_user_id(user_id)
+    except IntegrityError:
+        return None
+
+
+def update_student_info(user_id: int, data: dict) -> Student | None:
+    student_fields = []
+    user_fields = []
+    values = []
+
+    if "first_name" in data:
+        student_fields.append("first_name = ?")
+        values.append(data["first_name"])
+    if "last_name" in data:
+        student_fields.append("last_name = ?")
+        values.append(data["last_name"])
+    if "password" in data:
+        student_fields.append("password = ?")
+        user_fields.append("password = ?")
+        values.append(data["password"])
+
+    if not student_fields and not user_fields:
+        return None
+
+    student_values = values[:]
+    student_values.append(user_id)
+
+    try:
+        if student_fields:
+            update_query_str = f"""UPDATE students SET {', '.join(student_fields)} WHERE users_user_id = ?"""
+            update_query(update_query_str, tuple(student_values))
+
+        if user_fields:
+            user_values = (data["password"], user_id)
+            update_user_query_str = f"""UPDATE users SET {', '.join(user_fields)} WHERE user_id = ?"""
+            update_query(update_user_query_str, user_values)
+
+        return get_student_by_user_id(user_id)
     except IntegrityError:
         return None

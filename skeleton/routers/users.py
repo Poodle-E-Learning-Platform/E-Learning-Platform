@@ -77,3 +77,18 @@ async def update_teacher_info(data: dict, token: str = Header()):
     return BadRequest(content="Failed to update teacher information!")
 
 
+@users_router.put("/student/info")
+async def update_teacher_info(data: dict, token: str = Header()):
+    if users_service.is_token_blacklisted(token):
+        return Unauthorized(content="User is logged out! Login required to perform this task!")
+
+    user = users_service.from_token(token)
+    if user:
+        updated_student = users_service.update_student_info(user.user_id, data)
+        if updated_student:
+            return updated_student
+
+    return BadRequest(content="Failed to update teacher information!")
+
+
+

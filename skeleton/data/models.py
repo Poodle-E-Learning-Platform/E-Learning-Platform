@@ -136,18 +136,18 @@ class Student(BaseModel):
 
     @classmethod
     def from_query_result(cls, student_id,
+                          users_user_id,
                           email,
                           first_name,
                           last_name,
-                          password,
-                          users_user_id):
+                          password):
         return cls(
             student_id=student_id,
+            users_user_id=users_user_id,
             email=email,
             first_name=first_name,
             last_name=last_name,
             password=password,
-            users_user_id=users_user_id
         )
 
 
