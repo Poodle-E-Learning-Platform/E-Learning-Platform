@@ -27,6 +27,26 @@ def get_all_courses(token: str = Header()):
     return courses
 
 
+@courses_router.get("/{course_id}")
+def get_course_by_id(course_id: int, token: str = Header()):
+    user = get_user_or_raise_401(token)
+
+    if users_service.is_token_blacklisted(token):
+        return Unauthorized(content="User is logged out! Login required to perform this task!")
+
+    if not users_service.is_teacher(user.user_id):
+        return Forbidden(content="User must be a teacher in order to view all courses!")
+
+    teacher = users_service.get_teacher_by_user_id(user.user_id)
+
+    course = courses_service.get_course_by_id(user.user_id, course_id)
+
+    if not course:
+        return NotFound(content=f"Course with id{course_id} not found!")
+
+    return course
+
+
 @courses_router.post("/")
 async def create_course(data: CreateCourse, token: str = Header()):
     user = get_user_or_raise_401(token)
