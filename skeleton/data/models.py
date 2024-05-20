@@ -23,9 +23,11 @@ class Section(BaseModel):
 
 
 class CreateSection(BaseModel):
-    title: str
-    content: str
     course_id: int
+    title: str = constr(pattern="^\w{1,100}$")
+    content: str
+    description: str | None = None
+    external_resource: str | None = None
 
 
 class Course(BaseModel):
@@ -69,6 +71,7 @@ class CourseWithSections(BaseModel):
     title: str = constr(pattern="^\w{1,50}$")
     description: str
     objectives: str
+    owner_id: int
     is_premium: bool
     sections: list[Section | None]
 

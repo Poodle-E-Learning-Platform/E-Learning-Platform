@@ -8,7 +8,7 @@ from common.authentication import get_user_or_raise_401
 courses_router = APIRouter(prefix="/courses")
 
 
-@courses_router.get("/")
+@courses_router.get("/teachers")
 def get_all_courses(token: str = Header()):
     user = get_user_or_raise_401(token)
 

@@ -37,6 +37,7 @@ def get_all_courses(user_id: int) -> list[CourseWithSections] | NotFound | None:
             title=course_row[1],
             description=course_row[2],
             objectives=course_row[3],
+            owner_id=course_row[-3],
             is_premium=bool(course_row[-2]),
             sections=sections
         )
@@ -76,6 +77,7 @@ def get_course_by_id(user_id: int, course_id: int) -> CourseWithSections | NotFo
         title=course_row[1],
         description=course_row[2],
         objectives=course_row[3],
+        owner_id=course_row[-3],
         is_premium=bool(course_row[-2]),
         sections=sections
     )
