@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Header, HTTPException
-from data.models import Section, CreateSection
+from data.models import Section, CreateSection, UpdateSection
 from common.responses import BadRequest, Unauthorized, Forbidden, NotFound
 from services import courses_service, users_service, sections_service
 from common.authentication import get_user_or_raise_401
@@ -32,6 +32,23 @@ def create_new_section(data: CreateSection, token: str = Header()):
         return section
     else:
         return BadRequest(content="Failed to create section!")
+
+
+@sections_router.put("/{section_id}")
+def update_section(section_id: int, data: UpdateSection, token: str = Header()):
+    user = get_user_or_raise_401(token)
+
+    if users_service.is_token_blacklisted(token):
+        return Unauthorized(content="User is logged out! Login required to perform this task!")
+
+    if not users_service.is_teacher(user.user_id):
+        return Forbidden(content="User must be a teacher in order to update a section!")
+
+    updated_section = sections_service.update_section(section_id, user.user_id, data)
+    if updated_section:
+        return {"message": "Section updated successfully!"}
+    else:
+        return NotFound(content=f"Section with ID {section_id} not found!")
 
 
 @sections_router.delete("/{section_id}")

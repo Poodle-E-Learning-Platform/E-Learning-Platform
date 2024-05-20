@@ -30,6 +30,13 @@ class CreateSection(BaseModel):
     external_resource: str | None = None
 
 
+class UpdateSection(BaseModel):
+    title: str = constr(pattern="^\w{1,100}$")
+    content: str
+    description: str | None = None
+    external_resource: str | None = None
+
+
 class Course(BaseModel):
     course_id: int
     title: str = constr(pattern="^\w{1,50}$")

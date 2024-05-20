@@ -1,7 +1,7 @@
 from mariadb import IntegrityError
-from data.database import insert_query, read_query, delete_query
-from data.models import Section, CreateSection
-from common.responses import NotFound, Unauthorized
+from data.database import insert_query, read_query, delete_query, update_query
+from data.models import Section, CreateSection, UpdateSection
+from common.responses import NotFound, Unauthorized, Forbidden
 from services import users_service, courses_service
 
 
@@ -23,6 +23,22 @@ def create_new_section(user_id: int, data: CreateSection) -> Section | None | No
         return None
     except IntegrityError:
         return None
+
+
+def update_section(section_id: int, user_id: int, data: UpdateSection) -> bool | NotFound | Forbidden:
+    if not is_section_owner(section_id, user_id):
+        return Forbidden(content="Teacher must be the owner of the section to update it!")
+
+    rows_affected = update_query(
+        """update sections set title = ?, content = ?, description = ?, external_resource = ? 
+           where section_id = ?""",
+        (data.title, data.content, data.description, data.external_resource, section_id)
+    )
+
+    if rows_affected:
+        return True
+    else:
+        return NotFound(content=f"Section with ID {section_id} not found!")
 
 
 def delete_section(section_id: int, user_id: int) -> bool | NotFound:
