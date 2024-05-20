@@ -33,3 +33,11 @@ def update_query(sql: str, sql_params=()):
         cursor.execute(sql, sql_params)
         conn.commit()
         return cursor.rowcount
+
+
+def delete_query(sql: str, sql_params=()):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(sql, sql_params)
+        conn.commit()
+        return cursor.rowcount
