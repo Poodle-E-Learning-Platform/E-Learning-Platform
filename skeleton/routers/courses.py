@@ -28,7 +28,7 @@ def get_all_courses(token: str = Header()):
 
 
 @courses_router.get("/{course_id}")
-def get_course_by_id(course_id: int, token: str = Header()):
+def get_course_by_id(course_id: int, order: str = "asc", title: str = None, token: str = Header()):
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
@@ -39,10 +39,13 @@ def get_course_by_id(course_id: int, token: str = Header()):
 
     teacher = users_service.get_teacher_by_user_id(user.user_id)
 
-    course = courses_service.get_course_by_id(user.user_id, course_id)
+    course = courses_service.get_course_by_id(user.user_id, course_id, order, title)
 
     if not course:
-        return NotFound(content=f"Course with id{course_id} not found!")
+        return NotFound(content=f"Course with id {course_id} not found!")
+
+    if teacher.teacher_id != course.owner_id:
+        return Forbidden(content=f"Teacher must be owner of course with id: {course.course_id} in order to view it!")
 
     return course
 

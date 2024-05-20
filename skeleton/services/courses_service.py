@@ -47,7 +47,7 @@ def get_all_courses(user_id: int) -> list[CourseWithSections] | NotFound | None:
     return courses_with_sections
 
 
-def get_course_by_id(user_id: int, course_id: int) -> CourseWithSections | NotFound:
+def get_course_by_id(user_id: int, course_id: int, order: str = "asc", title: str = None) -> CourseWithSections | NotFound:
     teacher = users_service.get_teacher_by_user_id(user_id)
 
     if not teacher:
@@ -55,7 +55,7 @@ def get_course_by_id(user_id: int, course_id: int) -> CourseWithSections | NotFo
 
     owner_id = teacher.teacher_id
 
-    course_query = """select * from courses where owner_id = ? and course_id = ?"""
+    course_query = """SELECT * FROM courses WHERE owner_id = ? AND course_id = ?"""
     course_params = (owner_id, course_id)
     course_data = read_query(course_query, course_params)
 
@@ -65,8 +65,18 @@ def get_course_by_id(user_id: int, course_id: int) -> CourseWithSections | NotFo
     course_row = course_data[0]
     sections = []
 
-    section_query = """select * from sections where course_id = ?"""
-    section_params = (course_id,)
+    section_query = """SELECT * FROM sections WHERE course_id = ?"""
+
+    if title:
+        section_query += """ AND title LIKE ?"""
+        section_params = (course_id, f"%{title}%")
+    else:
+        section_params = (course_id,)
+
+    section_query += """ ORDER BY section_id"""
+    if order.lower() == "desc":
+        section_query += """ DESC"""
+
     section_data = read_query(section_query, section_params)
 
     if section_data:
@@ -83,6 +93,7 @@ def get_course_by_id(user_id: int, course_id: int) -> CourseWithSections | NotFo
     )
 
     return course_with_sections
+
 
 
 def create_course(user_id: int, data: CreateCourse) -> Course | None | NotFound:
