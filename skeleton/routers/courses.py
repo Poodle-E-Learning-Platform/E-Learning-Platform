@@ -27,7 +27,7 @@ def get_all_courses(token: str = Header()):
     return courses
 
 
-@courses_router.get("/{course_id}")
+@courses_router.get("/{course_id}/teachers")
 def get_course_by_id(course_id: int, order: str = "asc", title: str = None, token: str = Header()):
     user = get_user_or_raise_401(token)
 
