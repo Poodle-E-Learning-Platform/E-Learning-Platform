@@ -54,12 +54,14 @@ class CreateCourse(BaseModel):
     title: str = constr(pattern="^\w{1,50}$")
     description: str
     objectives: str
+    is_premium: bool
 
 
 class UpdateCourse(BaseModel):
     title: str = constr(pattern="^\w{1,50}$")
     description: str
     objectives: str
+    is_premium: bool
 
 
 class CourseWithSections(BaseModel):
@@ -67,6 +69,7 @@ class CourseWithSections(BaseModel):
     title: str = constr(pattern="^\w{1,50}$")
     description: str
     objectives: str
+    is_premium: bool
     sections: list[Section | None]
 
 

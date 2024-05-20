@@ -37,6 +37,7 @@ def get_all_courses(user_id: int) -> list[CourseWithSections] | NotFound | None:
             title=course_row[1],
             description=course_row[2],
             objectives=course_row[3],
+            is_premium=bool(course_row[-2]),
             sections=sections
         )
 
@@ -75,6 +76,7 @@ def get_course_by_id(user_id: int, course_id: int) -> CourseWithSections | NotFo
         title=course_row[1],
         description=course_row[2],
         objectives=course_row[3],
+        is_premium=bool(course_row[-2]),
         sections=sections
     )
 
@@ -90,12 +92,12 @@ def create_course(user_id: int, data: CreateCourse) -> Course | None | NotFound:
 
     try:
         course_id = insert_query(
-            """insert into courses (title, description, objectives, owner_id) values (?, ?, ?, ?)""",
-            (data.title, data.description, data.objectives, owner_id)
+            """insert into courses (title, description, objectives, owner_id, is_premium) values (?, ?, ?, ?, ?)""",
+            (data.title, data.description, data.objectives, owner_id, data.is_premium)
         )
         if course_id:
             return Course(course_id=course_id, title=data.title, description=data.description,
-                          objectives=data.objectives, owner_id=owner_id)
+                          objectives=data.objectives, owner_id=owner_id, is_premium=data.is_premium)
         return None
     except IntegrityError:
         return None
@@ -113,8 +115,9 @@ def update_course(course_id: int, data: UpdateCourse, user_id: int) -> Course | 
 
     try:
         update_query(
-            """UPDATE courses SET title = ?, description = ?, objectives = ? WHERE course_id = ? AND owner_id = ?""",
-            (data.title, data.description, data.objectives, course_id, teacher.teacher_id)
+            """UPDATE courses SET title = ?, description = ?, objectives = ?, is_premium = ?
+             WHERE course_id = ? AND owner_id = ?""",
+            (data.title, data.description, data.objectives, data.is_premium, course_id, teacher.teacher_id)
         )
 
         updated_course = get_course_by_id(user_id, course_id)

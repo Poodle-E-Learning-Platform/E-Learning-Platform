@@ -72,13 +72,15 @@ def update_course_details(course_id: int, data: UpdateCourse, token: str = Heade
         return Unauthorized(content="User is logged out! Login required to perform this task!")
 
     if not users_service.is_teacher(user.user_id):
-        raise HTTPException(status_code=403, detail="User is not authorized! Only teachers that are owners"
-                                                    " can update a course!")
+        return Forbidden(content="User is not authorized! Only teachers that are owners "
+                                 "can update a course!")
 
     updated_course = courses_service.update_course(course_id, data, user.user_id)
 
     if not updated_course:
-        raise HTTPException(status_code=404, detail=f"Course with id: {course_id} not found")
+        return NotFound(content=f"Course with id: {course_id} not found")
+
+    updated_course.is_premium = bool(updated_course.is_premium)
 
     return updated_course
 
