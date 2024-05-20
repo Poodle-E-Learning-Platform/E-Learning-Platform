@@ -95,6 +95,26 @@ def get_course_by_id(user_id: int, course_id: int, order: str = "asc", title: st
     return course_with_sections
 
 
+def get_course_by_id_simpler(course_id) -> Course | NotFound:
+    course_query = """select * from courses where course_id = ?"""
+    course_params = (course_id,)
+    course_data = read_query(course_query, course_params)
+
+    if not course_data:
+        return NotFound(content=f"Course with ID {course_id} not found!")
+
+    course_row = course_data[0]
+
+    return Course(course_id=course_row[0],
+                  title=course_row[1],
+                  description=course_row[2],
+                  objectives=course_row[3],
+                  owner_id=course_row[-3],
+                  is_premium=bool(course_row[-2]),
+                  rating=course_row[-1]
+                  )
+
+
 
 def create_course(user_id: int, data: CreateCourse) -> Course | None | NotFound:
     teacher = users_service.get_teacher_by_user_id(user_id)
