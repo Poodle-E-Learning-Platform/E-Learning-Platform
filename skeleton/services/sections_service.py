@@ -1,7 +1,7 @@
 from mariadb import IntegrityError
-from data.database import insert_query
+from data.database import insert_query, read_query, delete_query
 from data.models import Section, CreateSection
-from common.responses import NotFound
+from common.responses import NotFound, Unauthorized
 from services import users_service, courses_service
 
 
@@ -25,19 +25,37 @@ def create_new_section(user_id: int, data: CreateSection) -> Section | None | No
         return None
 
 
-# def update_section(section_id: int, section: CreateSection) -> bool:
-#     sql = "UPDATE sections SET title=?, content=?, description=?, external_resource=? WHERE section_id=?"
-#     params = (section.title, section.content, section.description, section.external_resource, section_id)
-#     return update_query(sql, params)
-#
-# def delete_section(section_id: int) -> bool:
-#     sql = "DELETE FROM sections WHERE section_id=?"
-#     return update_query(sql, (section_id,))
-#
-# def get_section_by_id(section_id: int) -> Optional[Section]:
-#     sql = "SELECT section_id, title, content, description, external_resource, course_id FROM sections WHERE section_id=?"
-#     result = read_query(sql, (section_id,))
-#     if result:
-#         section_data = result[0]
-#         return Section(**section_data)
-#     return None
+def delete_section(section_id: int, user_id: int) -> bool | NotFound:
+    teacher = users_service.get_teacher_by_user_id(user_id)
+    if not teacher:
+        return NotFound(content="Teacher not found!")
+
+    rows_affected = delete_query(
+        """delete from sections where section_id = ?""",
+        (section_id,)
+    )
+    if rows_affected:
+        return True
+
+    return False
+
+
+def is_section_owner(section_id: int, user_id: int) -> bool | NotFound | Unauthorized:
+    section_query = """select course_id from sections where section_id = ?"""
+    section_data = read_query(section_query, (section_id,))
+
+    if not section_data:
+        return NotFound(content=f"Section with ID {section_id} not found!")
+
+    teacher = users_service.get_teacher_by_user_id(user_id)
+
+    if not teacher:
+        return Unauthorized(content="User be a logged in teacher!")
+
+    course_id = section_data[0][0]
+    course = courses_service.get_course_by_id(user_id, course_id)
+
+    if not course:
+        return NotFound(content=f"Course with ID {course_id} not found!")
+
+    return course.owner_id == teacher.teacher_id

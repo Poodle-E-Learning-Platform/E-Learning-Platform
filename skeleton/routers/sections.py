@@ -33,3 +33,22 @@ def create_new_section(data: CreateSection, token: str = Header()):
     else:
         return BadRequest(content="Failed to create section!")
 
+
+@sections_router.delete("/{section_id}")
+def delete_section(section_id: int, token: str = Header()):
+    user = get_user_or_raise_401(token)
+
+    if users_service.is_token_blacklisted(token):
+        return Unauthorized(content="User is logged out! Login required to perform this task!")
+
+    if not users_service.is_teacher(user.user_id):
+        return Forbidden(content="User must be a teacher in order to delete a section from a course!")
+
+    if not sections_service.is_section_owner(section_id, user.user_id):
+        return Forbidden(content="Teacher must be the owner of the section to delete it!")
+
+    success = sections_service.delete_section(section_id, user.user_id)
+    if success:
+        return {"message": "Section deleted successfully!"}
+    else:
+        return NotFound(content="Section not found or failed to delete!")
