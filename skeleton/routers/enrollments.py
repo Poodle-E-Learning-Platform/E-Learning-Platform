@@ -2,6 +2,7 @@ from fastapi import APIRouter, Header
 from common.responses import BadRequest, Unauthorized, Forbidden, NotFound, Conflict
 from services import users_service, enrollments_service, courses_service
 from common.authentication import get_user_or_raise_401
+from common.constants import PREMIUM_COURSE_LIMIT
 
 
 enrollments_router = APIRouter(prefix="/enrollments")
@@ -49,17 +50,12 @@ def subscribe_to_course(course_id: int, token: str = Header()):
 
     if course.is_premium:
         premium_count = enrollments_service.get_premium_course_count(student.student_id)
-        if premium_count >= 5:
+        if premium_count >= PREMIUM_COURSE_LIMIT:
             return Conflict(content="Student cannot subscribe to more than 5 premium courses at a time!")
 
-    result = enrollments_service.subscribe_to_course(student.student_id, course_id)
+    enrollments_service.subscribe_to_course(student.student_id, course_id)
 
-    if result:
-        return {"message": f"Student with id:{student.student_id} successfully subscribed to"
-                           f" course with id:{course_id}."}
-
-    else:
-        return BadRequest(content="Failed to subscribe student to course!")
+    return {"message": f"Student with id:{student.student_id} successfully subscribed to course with id:{course_id}."}
 
 
 @enrollments_router.post("/courses/{course_id}/unsubscribe")
@@ -82,11 +78,6 @@ def unsubscribe_from_course(course_id: int, token: str = Header()):
     if enrollments_service.is_student_not_enrolled(student.student_id, course.course_id):
         return Conflict(content="Student is already not subscribed to this course!")
 
-    result = enrollments_service.unsubscribe_from_course(student.student_id, course_id)
+    enrollments_service.unsubscribe_from_course(student.student_id, course_id)
 
-    if result:
-        return {"message": f"Student with id:{student.student_id} successfully unsubscribed from"
-                           f" course with id:{course_id}."}
-
-    else:
-        return BadRequest(content="Failed to unsubscribe student from course!")
+    return {"message": f"Student with id:{student.student_id} successfully unsubscribed from course with id:{course_id}."}
