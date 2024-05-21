@@ -71,7 +71,7 @@ def get_teacher_course_by_id(course_id: int, order: str = "asc", title: str = No
 
 
 @courses_router.get("/{course_id}/students")
-def get_student_course_by_id(course_id: int, token: str = Header()):
+def get_student_course_by_id(course_id: int, order: str = "asc", title: str = None, token: str = Header()):
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
@@ -82,7 +82,7 @@ def get_student_course_by_id(course_id: int, token: str = Header()):
     if not student:
         return Forbidden(content="User must be a student in order to view a specific course with its sections!")
 
-    course = courses_service.get_student_course_by_id(student.student_id, course_id)
+    course = courses_service.get_student_course_by_id(student.student_id, course_id, order, title)
 
     if not course:
         return NotFound(f"Course with id:{course_id} not found!")

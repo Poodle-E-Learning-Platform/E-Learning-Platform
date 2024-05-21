@@ -95,7 +95,8 @@ def get_teacher_course_by_id(user_id: int, course_id: int, order: str = "asc", t
     return course_with_sections
 
 
-def get_student_course_by_id(student_id: int, course_id: int) -> CourseWithSections | NotFound:
+def get_student_course_by_id(student_id: int, course_id: int, order: str = "asc", title: str = None) ->\
+        CourseWithSections | NotFound:
     course_query = """select * from courses where course_id = ?"""
     course_params = (course_id,)
     course_data = read_query(course_query, course_params)
@@ -115,7 +116,17 @@ def get_student_course_by_id(student_id: int, course_id: int) -> CourseWithSecti
             return NotFound(content="Access denied. This is a premium course and the student is not enrolled.")
 
     section_query = """select * from sections where course_id = ?"""
-    section_params = (course_id,)
+
+    if title:
+        section_query += """ and title like ?"""
+        section_params = (course_id, f"%{title}%")
+    else:
+        section_params = (course_id,)
+
+    section_query += """ order by section_id"""
+    if order.lower() == "desc":
+        section_query += """ desc"""
+
     section_data = read_query(section_query, section_params)
 
     sections = [Section.from_query_result(*row) for row in section_data] if section_data else []
@@ -131,7 +142,6 @@ def get_student_course_by_id(student_id: int, course_id: int) -> CourseWithSecti
     )
 
     return course_with_sections
-
 
 def get_course_by_id_simpler(course_id) -> Course | NotFound:
     course_query = """select * from courses where course_id = ?"""
