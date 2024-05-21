@@ -2,7 +2,7 @@
 
 ## Project Description
 
-E-learning platform designed for students to search for and enroll in online courses, and for teachers to publish and manage courses.
+E-learning platform designed for students to search for and enroll in online courses, and for teachers to publish and manage courses. Functionality: Students view and access courses. Teachers create, update, and manage courses, sections, and student enrollments.
 
 ## Functional Requirements
 
