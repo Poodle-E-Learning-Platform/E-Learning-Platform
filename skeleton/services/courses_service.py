@@ -5,15 +5,9 @@ from services import users_service
 from common.responses import NotFound, Forbidden
 
 
-def get_all_teacher_courses(user_id: int) -> list[CourseWithSections] | NotFound | None:
-    teacher = users_service.get_teacher_by_user_id(user_id)
-    if not teacher:
-        return NotFound(content="Teacher not found!")
-
-    owner_id = teacher.teacher_id
-
+def get_all_teacher_courses(teacher_id: int) -> list[CourseWithSections] | NotFound | None:
     course_query = """select * from courses where owner_id = ?"""
-    course_params = (owner_id,)
+    course_params = (teacher_id,)
     course_data = read_query(course_query, course_params)
 
     if not course_data:
@@ -47,16 +41,10 @@ def get_all_teacher_courses(user_id: int) -> list[CourseWithSections] | NotFound
     return courses_with_sections
 
 
-def get_teacher_course_by_id(user_id: int, course_id: int, order: str = "asc", title: str = None) -> CourseWithSections | NotFound:
-    teacher = users_service.get_teacher_by_user_id(user_id)
-
-    if not teacher:
-        return NotFound(content="Teacher not found!")
-
-    owner_id = teacher.teacher_id
-
+def get_teacher_course_by_id(teacher_id: int, course_id: int, order: str = "asc", title: str = None) ->\
+        CourseWithSections | NotFound:
     course_query = """SELECT * FROM courses WHERE owner_id = ? AND course_id = ?"""
-    course_params = (owner_id, course_id)
+    course_params = (teacher_id, course_id)
     course_data = read_query(course_query, course_params)
 
     if not course_data:
@@ -200,45 +188,6 @@ def get_all_student_courses(student_id: int) -> list[Course] | NotFound | None:
         return NotFound(content="Student is not enrolled in any courses yet!")
 
     return courses
-
-
-def get_non_premium_courses() -> list[CourseWithSections] | NotFound:
-    query = """
-    SELECT c.course_id, c.title, c.description, c.objectives, c.owner_id, c.is_premium,
-           s.section_id, s.title, s.content, s.description, s.external_resource
-    FROM courses c
-    JOIN sections s ON c.course_id = s.course_id
-    WHERE c.is_premium = 0
-    """
-    data = read_query(query)
-
-    if not data:
-        return NotFound(content="No courses and sections found!")
-
-    courses_with_sections = []
-    for row in data:
-        if not courses_with_sections or courses_with_sections[-1].course_id != row[0]:
-            current_course = CourseWithSections(
-                course_id=row[0],
-                title=row[1],
-                description=row[2],
-                objectives=row[3],
-                owner_id=row[4],
-                is_premium=bool(row[5]),
-                sections=[]
-            )
-            courses_with_sections.append(current_course)
-
-        section = Section(
-            section_id=row[6],
-            title=row[7],
-            content=row[8],
-            description=row[9],
-            external_resource=row[10]
-        )
-        current_course.sections.append(section)
-
-    return courses_with_sections
 
 
 def create_course(user_id: int, data: CreateCourse) -> Course | None | NotFound:

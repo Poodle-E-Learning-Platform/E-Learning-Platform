@@ -16,12 +16,13 @@ def get_all_teacher_courses(token: str = Header()):
     if users_service.is_token_blacklisted(token):
         return USER_LOGGED_OUT_RESPONSE
 
-    if not users_service.is_teacher(user.user_id):
-        return Forbidden(content="User must be a teacher in order to view all courses!")
-
     teacher = users_service.get_teacher_by_user_id(user.user_id)
 
-    courses = courses_service.get_all_teacher_courses(user.user_id)
+    if not teacher:
+        return Forbidden(content="User must be a teacher in order to view all courses!")
+
+    courses = courses_service.get_all_teacher_courses(teacher.teacher_id)
+
     if not courses:
         return NotFound(content=f"Teacher with id:{teacher.teacher_id} has not created any courses yet")
 
@@ -55,12 +56,12 @@ def get_teacher_course_by_id(course_id: int, order: str = "asc", title: str = No
     if users_service.is_token_blacklisted(token):
         return USER_LOGGED_OUT_RESPONSE
 
-    if not users_service.is_teacher(user.user_id):
-        return Forbidden(content="User must be a teacher in order to view all courses!")
-
     teacher = users_service.get_teacher_by_user_id(user.user_id)
 
-    course = courses_service.get_teacher_course_by_id(user.user_id, course_id, order, title)
+    if not teacher:
+        return Forbidden(content="User must be a teacher in order to view all courses!")
+
+    course = courses_service.get_teacher_course_by_id(teacher.teacher_id, course_id, order, title)
 
     if not course:
         return NotFound(content=f"Course with id {course_id} not found!")
@@ -115,7 +116,9 @@ def update_course_details(course_id: int, data: UpdateCourse, token: str = Heade
     if users_service.is_token_blacklisted(token):
         return USER_LOGGED_OUT_RESPONSE
 
-    if not users_service.is_teacher(user.user_id):
+    teacher = users_service.get_teacher_by_user_id(user.user_id)
+
+    if not teacher:
         return Forbidden(content="User is not authorized! Only teachers that are owners "
                                  "can update a course!")
 
