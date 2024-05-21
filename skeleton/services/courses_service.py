@@ -95,6 +95,44 @@ def get_teacher_course_by_id(user_id: int, course_id: int, order: str = "asc", t
     return course_with_sections
 
 
+def get_student_course_by_id(student_id: int, course_id: int) -> CourseWithSections | NotFound:
+    course_query = """select * from courses where course_id = ?"""
+    course_params = (course_id,)
+    course_data = read_query(course_query, course_params)
+
+    if not course_data:
+        return NotFound(content=f"Course with ID {course_id} not found!")
+
+    course_row = course_data[0]
+    is_premium = bool(course_row[-2])
+
+    if is_premium:
+        enrollment_query = """select * from enrollments where courses_course_id = ? and students_student_id = ?"""
+        enrollment_params = (course_id, student_id)
+        enrollment_data = read_query(enrollment_query, enrollment_params)
+
+        if not enrollment_data:
+            return NotFound(content="Access denied. This is a premium course and the student is not enrolled.")
+
+    section_query = """select * from sections where course_id = ?"""
+    section_params = (course_id,)
+    section_data = read_query(section_query, section_params)
+
+    sections = [Section.from_query_result(*row) for row in section_data] if section_data else []
+
+    course_with_sections = CourseWithSections(
+        course_id=course_row[0],
+        title=course_row[1],
+        description=course_row[2],
+        objectives=course_row[3],
+        owner_id=course_row[-3],
+        is_premium=is_premium,
+        sections=sections
+    )
+
+    return course_with_sections
+
+
 def get_course_by_id_simpler(course_id) -> Course | NotFound:
     course_query = """select * from courses where course_id = ?"""
     course_params = (course_id,)
