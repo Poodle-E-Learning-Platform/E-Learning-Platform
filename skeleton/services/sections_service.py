@@ -69,7 +69,7 @@ def is_section_owner(section_id: int, user_id: int) -> bool | NotFound | Unautho
         return Unauthorized(content="User be a logged in teacher!")
 
     course_id = section_data[0][0]
-    course = courses_service.get_course_by_id(user_id, course_id)
+    course = courses_service.get_teacher_course_by_id(user_id, course_id)
 
     if not course:
         return NotFound(content=f"Course with ID {course_id} not found!")
