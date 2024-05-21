@@ -5,7 +5,7 @@ from services import users_service
 from common.responses import NotFound
 
 
-def get_all_courses(user_id: int) -> list[CourseWithSections] | NotFound | None:
+def get_all_teacher_courses(user_id: int) -> list[CourseWithSections] | NotFound | None:
     teacher = users_service.get_teacher_by_user_id(user_id)
     if not teacher:
         return NotFound(content="Teacher not found!")
@@ -47,7 +47,7 @@ def get_all_courses(user_id: int) -> list[CourseWithSections] | NotFound | None:
     return courses_with_sections
 
 
-def get_course_by_id(user_id: int, course_id: int, order: str = "asc", title: str = None) -> CourseWithSections | NotFound:
+def get_teacher_course_by_id(user_id: int, course_id: int, order: str = "asc", title: str = None) -> CourseWithSections | NotFound:
     teacher = users_service.get_teacher_by_user_id(user_id)
 
     if not teacher:
@@ -115,7 +115,7 @@ def get_course_by_id_simpler(course_id) -> Course | NotFound:
                   )
 
 
-def get_student_courses(student_id: int) -> list[Course] | NotFound | None:
+def get_all_student_courses(student_id: int) -> list[Course] | NotFound | None:
     enrolled_query = """
     select c.course_id, c.title, c.description, c.objectives, c.owner_id, c.is_premium, c.rating
     from courses c
