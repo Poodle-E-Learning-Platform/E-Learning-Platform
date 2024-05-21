@@ -1,8 +1,8 @@
-from data.database import insert_query, read_query, update_query
+from data.database import insert_query, read_query, update_query, delete_query
 from data.models import Course, CreateCourse, CourseWithSections, Section, UpdateCourse
 from mariadb import IntegrityError
 from services import users_service
-from common.responses import NotFound
+from common.responses import NotFound, Forbidden
 
 
 def get_all_teacher_courses(user_id: int) -> list[CourseWithSections] | NotFound | None:
@@ -143,6 +143,7 @@ def get_student_course_by_id(student_id: int, course_id: int, order: str = "asc"
 
     return course_with_sections
 
+
 def get_course_by_id_simpler(course_id) -> Course | NotFound:
     course_query = """select * from courses where course_id = ?"""
     course_params = (course_id,)
@@ -199,7 +200,6 @@ def get_all_student_courses(student_id: int) -> list[Course] | NotFound | None:
         return NotFound(content="Student is not enrolled in any courses yet!")
 
     return courses
-
 
 
 def get_non_premium_courses() -> list[CourseWithSections] | NotFound:
@@ -269,7 +269,7 @@ def update_course(course_id: int, data: UpdateCourse, user_id: int) -> Course | 
     if not teacher:
         return NotFound(content="Teacher not found!")
 
-    course = get_course_by_id(teacher.users_user_id, course_id)
+    course = get_teacher_course_by_id(teacher.users_user_id, course_id)
 
     if not course:
         return NotFound(content=f"Course with ID {course_id} not found.")
@@ -281,7 +281,37 @@ def update_course(course_id: int, data: UpdateCourse, user_id: int) -> Course | 
             (data.title, data.description, data.objectives, data.is_premium, course_id, teacher.teacher_id)
         )
 
-        updated_course = get_course_by_id(user_id, course_id)
+        updated_course = get_teacher_course_by_id(user_id, course_id)
         return updated_course
     except IntegrityError:
         return None
+
+
+def delete_course_if_no_enrollments(teacher_id: int, course_id: int) -> dict | NotFound | Forbidden:
+    course_query = """select * from courses where course_id = ? and owner_id = ?"""
+    course_params = (course_id, teacher_id)
+    course_data = read_query(course_query, course_params)
+
+    if not course_data:
+        return NotFound(content=f"Course with ID {course_id} not found or you do not own this course!")
+
+    enrollments_query = """select * from enrollments where courses_course_id = ?"""
+    enrollments_params = (course_id,)
+    enrollments_data = read_query(enrollments_query, enrollments_params)
+
+    if enrollments_data:
+        return Forbidden(content=f"Cannot delete course with ID {course_id} because students are enrolled in it!")
+
+    delete_course_query = """delete from courses where course_id = ?"""
+    delete_course_params = (course_id,)
+    delete_query(delete_course_query, delete_course_params)
+
+    return {"message": "Course deleted successfully"}
+
+
+def is_course_deleted(course_id: int) -> bool:
+    course_query = """select * from courses where course_id = ?"""
+    course_params = (course_id,)
+    course_data = read_query(course_query, course_params)
+
+    return not course_data

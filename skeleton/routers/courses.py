@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Header, HTTPException
 from data.models import Course, CreateCourse, CourseWithSections, UpdateCourse
-from common.responses import BadRequest, Unauthorized, Forbidden, NotFound
+from common.responses import BadRequest, Unauthorized, Forbidden, NotFound, Conflict
 from services import courses_service, users_service
 from common.authentication import get_user_or_raise_401
 
@@ -126,6 +126,38 @@ def update_course_details(course_id: int, data: UpdateCourse, token: str = Heade
     updated_course.is_premium = bool(updated_course.is_premium)
 
     return updated_course
+
+
+@courses_router.delete("/{course_id}")
+def delete_course(course_id: int, token: str = Header()):
+    user = get_user_or_raise_401(token)
+
+    if users_service.is_token_blacklisted(token):
+        return HTTPException(status_code=401, detail="User is logged out! Login required to perform this task!")
+
+    teacher = users_service.get_teacher_by_user_id(user.user_id)
+
+    if not teacher:
+        return Unauthorized(content="User must be a teacher to delete a course!")
+
+    course = courses_service.get_course_by_id_simpler(course_id)
+
+    if not course:
+        return NotFound(content=f"Course with id:{course_id} not found!")
+
+    if courses_service.is_course_deleted(course_id):
+        return Conflict(content=f"Course with id:{course_id} has already been deleted!")
+
+    if teacher.teacher_id != course.owner_id:
+        return BadRequest(content=f"Teacher must be owner of course with id:{course_id} in order to delete it!")
+
+    result = courses_service.delete_course_if_no_enrollments(teacher.teacher_id, course_id)
+
+    if not result:
+        BadRequest(content=f"Failed to delete course with id:{course_id}")
+
+    return result
+
 
 # {
 #     "title":"English for Beginners",
