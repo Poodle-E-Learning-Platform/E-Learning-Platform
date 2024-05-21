@@ -115,6 +115,86 @@ def get_course_by_id_simpler(course_id) -> Course | NotFound:
                   )
 
 
+def get_student_courses(student_id: int) -> list[Course] | NotFound | None:
+    enrolled_query = """
+    select c.course_id, c.title, c.description, c.objectives, c.owner_id, c.is_premium, c.rating
+    from courses c
+    join enrollments e on c.course_id = e.courses_course_id
+    where e.students_student_id = ?
+    """
+    enrolled_params = (student_id,)
+    enrolled_data = read_query(enrolled_query, enrolled_params)
+
+    non_premium_query = """
+    select c.course_id, c.title, c.description, c.objectives, c.owner_id, c.is_premium, c.rating
+    from courses c
+    where c.is_premium = 0
+    and not exists (
+        select 1
+        from enrollments e
+        where e.courses_course_id = c.course_id
+        and e.students_student_id = ?
+    )
+    """
+    non_premium_params = (student_id,)
+    non_premium_data = read_query(non_premium_query, non_premium_params)
+
+    courses = []
+
+    if enrolled_data:
+        courses.extend([Course.from_query_result(*row) for row in enrolled_data])
+
+    if non_premium_data:
+        courses.extend([Course.from_query_result(*row) for row in non_premium_data])
+
+    if not courses:
+        return NotFound(content="Student is not enrolled in any courses yet!")
+
+    return courses
+
+
+
+def get_non_premium_courses() -> list[CourseWithSections] | NotFound:
+    query = """
+    SELECT c.course_id, c.title, c.description, c.objectives, c.owner_id, c.is_premium,
+           s.section_id, s.title, s.content, s.description, s.external_resource
+    FROM courses c
+    JOIN sections s ON c.course_id = s.course_id
+    WHERE c.is_premium = 0
+    """
+    data = read_query(query)
+
+    if not data:
+        return NotFound(content="No courses and sections found!")
+
+    courses_with_sections = []
+    for row in data:
+        # Check if this is a new course
+        if not courses_with_sections or courses_with_sections[-1].course_id != row[0]:
+            # Create a new course
+            current_course = CourseWithSections(
+                course_id=row[0],
+                title=row[1],
+                description=row[2],
+                objectives=row[3],
+                owner_id=row[4],
+                is_premium=bool(row[5]),
+                sections=[]
+            )
+            courses_with_sections.append(current_course)
+
+        # Add section to the current course
+        section = Section(
+            section_id=row[6],
+            title=row[7],
+            content=row[8],
+            description=row[9],
+            external_resource=row[10]
+        )
+        current_course.sections.append(section)
+
+    return courses_with_sections
+
 
 def create_course(user_id: int, data: CreateCourse) -> Course | None | NotFound:
     teacher = users_service.get_teacher_by_user_id(user_id)

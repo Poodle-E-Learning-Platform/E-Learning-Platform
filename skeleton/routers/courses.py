@@ -27,6 +27,33 @@ def get_all_courses(token: str = Header()):
     return courses
 
 
+from fastapi import APIRouter, Header
+from common.responses import NotFound
+from services import enrollments_service, users_service
+
+student_courses_router = APIRouter(prefix="/student-courses")
+
+
+@courses_router.get("/students")
+def get_student_enrolled_courses(token: str = Header()):
+    user = get_user_or_raise_401(token)
+
+    if users_service.is_token_blacklisted(token):
+        return Unauthorized(content="User is logged out! Login required to perform this task!")
+
+    student = users_service.get_student_by_user_id(user.user_id)
+
+    if not student:
+        return Forbidden(content="User must be a student to access enrolled courses!")
+
+    courses = courses_service.get_student_courses(student.student_id)
+
+    if not courses:
+        return NotFound(content="No courses found for the student.")
+
+    return courses
+
+
 @courses_router.get("/{course_id}/teachers")
 def get_course_by_id(course_id: int, order: str = "asc", title: str = None, token: str = Header()):
     user = get_user_or_raise_401(token)
