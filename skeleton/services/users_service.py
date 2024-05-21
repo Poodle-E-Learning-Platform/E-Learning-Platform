@@ -1,6 +1,5 @@
 from data.database import insert_query, read_query, update_query
 from data.models import User, Teacher, Student, TeacherRegistration, StudentRegistration
-from common.responses import NotFound
 from mariadb import IntegrityError
 from jose import jwt, JWTError
 from datetime import datetime, timedelta

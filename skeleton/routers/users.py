@@ -2,12 +2,13 @@ from fastapi import APIRouter, Header
 from data.models import LoginInformation, TeacherRegistration, StudentRegistration
 from common.responses import BadRequest, Unauthorized, NotFound
 from services import users_service
+from common.constants import USER_LOGGED_OUT_RESPONSE
 
 users_router = APIRouter(prefix="/users")
 
 
 @users_router.post("/login")
-async def user_login(data: LoginInformation):
+def user_login(data: LoginInformation):
     user = users_service.try_login(data.email, data.password)
     if user:
         token = users_service.create_jwt_token(user.user_id, user.email)
@@ -16,7 +17,7 @@ async def user_login(data: LoginInformation):
 
 
 @users_router.post("/logout")
-async def user_logout(token: str = Header()):
+def user_logout(token: str = Header()):
     if not users_service.is_authenticated(token):
         return Unauthorized(content="Invalid token!")
 
@@ -28,7 +29,7 @@ async def user_logout(token: str = Header()):
 
 
 @users_router.get("/info")
-async def user_info(token: str = Header()):
+def user_info(token: str = Header()):
     payload = users_service.verify_jwt_token(token)
     if payload:
         user = users_service.get_by_id(payload["user_id"])
@@ -37,22 +38,22 @@ async def user_info(token: str = Header()):
     return Unauthorized(content="Invalid token!")
 
 
-@users_router.post("/register/teacher")
-async def register_teacher(data: TeacherRegistration):
+@users_router.post("/register/teachers")
+def register_teacher(data: TeacherRegistration):
     user = users_service.create_teacher(data)
     return user if user else BadRequest(f'E-mail "{data.email}" is already in use!')
 
 
-@users_router.post("/register/student")
-async def register_student(data: StudentRegistration):
+@users_router.post("/register/students")
+def register_student(data: StudentRegistration):
     user = users_service.create_student(data)
     return user if user else BadRequest(content=f'E-mail "{data.email}" is already in use!')
 
 
-@users_router.get("/teacher/info")
-async def get_teacher_info(token: str = Header()):
+@users_router.get("/teachers/info")
+def get_teacher_info(token: str = Header()):
     if users_service.is_token_blacklisted(token):
-        return Unauthorized(content="User is logged out! Login required to perform this task!")
+        return USER_LOGGED_OUT_RESPONSE
 
     user = users_service.from_token(token)
     if user:
@@ -63,10 +64,10 @@ async def get_teacher_info(token: str = Header()):
     return NotFound(content="Teacher not found!")
 
 
-@users_router.put("/teacher/info")
-async def update_teacher_info(data: dict, token: str = Header()):
+@users_router.put("/teachers/info")
+def update_teacher_info(data: dict, token: str = Header()):
     if users_service.is_token_blacklisted(token):
-        return Unauthorized(content="User is logged out! Login required to perform this task!")
+        return USER_LOGGED_OUT_RESPONSE
 
     user = users_service.from_token(token)
     if user:
@@ -78,9 +79,9 @@ async def update_teacher_info(data: dict, token: str = Header()):
 
 
 @users_router.put("/student/info")
-async def update_teacher_info(data: dict, token: str = Header()):
+def update_teacher_info(data: dict, token: str = Header()):
     if users_service.is_token_blacklisted(token):
-        return Unauthorized(content="User is logged out! Login required to perform this task!")
+        return USER_LOGGED_OUT_RESPONSE
 
     user = users_service.from_token(token)
     if user:

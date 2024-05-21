@@ -3,6 +3,7 @@ from data.models import Course, CreateCourse, CourseWithSections, UpdateCourse
 from common.responses import BadRequest, Unauthorized, Forbidden, NotFound, Conflict
 from services import courses_service, users_service
 from common.authentication import get_user_or_raise_401
+from common.constants import USER_LOGGED_OUT_RESPONSE
 
 
 courses_router = APIRouter(prefix="/courses")
@@ -13,7 +14,7 @@ def get_all_teacher_courses(token: str = Header()):
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
-        return Unauthorized(content="User is logged out! Login required to perform this task!")
+        return USER_LOGGED_OUT_RESPONSE
 
     if not users_service.is_teacher(user.user_id):
         return Forbidden(content="User must be a teacher in order to view all courses!")
@@ -32,7 +33,7 @@ def get_all_student_courses(token: str = Header()):
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
-        return Unauthorized(content="User is logged out! Login required to perform this task!")
+        return USER_LOGGED_OUT_RESPONSE
 
     student = users_service.get_student_by_user_id(user.user_id)
 
@@ -52,7 +53,7 @@ def get_teacher_course_by_id(course_id: int, order: str = "asc", title: str = No
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
-        return Unauthorized(content="User is logged out! Login required to perform this task!")
+        return USER_LOGGED_OUT_RESPONSE
 
     if not users_service.is_teacher(user.user_id):
         return Forbidden(content="User must be a teacher in order to view all courses!")
@@ -75,7 +76,7 @@ def get_student_course_by_id(course_id: int, order: str = "asc", title: str = No
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
-        return Unauthorized(content="User is logged out! Login required to perform this task!")
+        return USER_LOGGED_OUT_RESPONSE
 
     student = users_service.get_student_by_user_id(user.user_id)
 
@@ -95,7 +96,7 @@ async def create_course(data: CreateCourse, token: str = Header()):
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
-        return Unauthorized(content="User is logged out! Login required to perform this task!")
+        return USER_LOGGED_OUT_RESPONSE
 
     if not users_service.is_teacher(user.user_id):
         return Forbidden(content="User is not authorized to create a course!")
@@ -112,7 +113,7 @@ def update_course_details(course_id: int, data: UpdateCourse, token: str = Heade
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
-        return Unauthorized(content="User is logged out! Login required to perform this task!")
+        return USER_LOGGED_OUT_RESPONSE
 
     if not users_service.is_teacher(user.user_id):
         return Forbidden(content="User is not authorized! Only teachers that are owners "
@@ -133,7 +134,7 @@ def delete_course(course_id: int, token: str = Header()):
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
-        return HTTPException(status_code=401, detail="User is logged out! Login required to perform this task!")
+        return USER_LOGGED_OUT_RESPONSE
 
     teacher = users_service.get_teacher_by_user_id(user.user_id)
 

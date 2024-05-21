@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Header
-from common.responses import BadRequest, Unauthorized, Forbidden, NotFound, Conflict
+from common.responses import BadRequest, Forbidden, NotFound, Conflict
 from services import users_service, enrollments_service, courses_service
 from common.authentication import get_user_or_raise_401
-from common.constants import PREMIUM_COURSE_LIMIT
-
+from common.constants import PREMIUM_COURSE_LIMIT, USER_LOGGED_OUT_RESPONSE
 
 enrollments_router = APIRouter(prefix="/enrollments")
 
@@ -13,7 +12,7 @@ def get_teacher_students_report(token: str = Header()):
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
-        return Unauthorized(content="User is logged out! Login required to perform this task!")
+        return USER_LOGGED_OUT_RESPONSE
 
     teacher = users_service.get_teacher_by_user_id(user.user_id)
 
@@ -33,7 +32,7 @@ def subscribe_to_course(course_id: int, token: str = Header()):
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
-        return Unauthorized(content="User is logged out! Login required to perform this task!")
+        return USER_LOGGED_OUT_RESPONSE
 
     student = users_service.get_student_by_user_id(user.user_id)
 
@@ -63,7 +62,7 @@ def unsubscribe_from_course(course_id: int, token: str = Header()):
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
-        return Unauthorized(content="User is logged out! Login required to perform this task!")
+        return USER_LOGGED_OUT_RESPONSE
 
     student = users_service.get_student_by_user_id(user.user_id)
 

@@ -217,9 +217,7 @@ def get_non_premium_courses() -> list[CourseWithSections] | NotFound:
 
     courses_with_sections = []
     for row in data:
-        # Check if this is a new course
         if not courses_with_sections or courses_with_sections[-1].course_id != row[0]:
-            # Create a new course
             current_course = CourseWithSections(
                 course_id=row[0],
                 title=row[1],
@@ -231,7 +229,6 @@ def get_non_premium_courses() -> list[CourseWithSections] | NotFound:
             )
             courses_with_sections.append(current_course)
 
-        # Add section to the current course
         section = Section(
             section_id=row[6],
             title=row[7],
