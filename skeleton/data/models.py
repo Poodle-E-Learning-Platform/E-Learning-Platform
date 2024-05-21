@@ -171,6 +171,24 @@ class StudentRegistration(BaseModel):
     password: str = constr(pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$")
 
 
+class StudentReport(BaseModel):
+    student_id: int
+    first_name: str
+    last_name: str
+    email: str
+    course_id: int
+    course_title: str
+
+    @classmethod
+    def from_query_result(cls, student_id, first_name, last_name, email, course_id, course_title):
+        return cls(student_id=student_id,
+                   first_name=first_name,
+                   last_name=last_name,
+                   email=email,
+                   course_id=course_id,
+                   course_title=course_title)
+
+
 class GetUser(BaseModel):
     user_id: int
     email: str = constr(pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")

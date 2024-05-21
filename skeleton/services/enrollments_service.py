@@ -1,6 +1,7 @@
 from data.database import read_query, insert_query, delete_query
 from services import courses_service
 from common.responses import NotFound, Conflict
+from data.models import StudentReport
 
 
 def is_student_enrolled(student_id: int, course_id: int) -> bool:
@@ -61,3 +62,16 @@ def unsubscribe_from_course(student_id: int, course_id: int) -> dict | NotFound 
     delete_query(unsubscribe_query, (student_id, course_id))
 
     return {"message": f"Student with id:{student_id} successfully unsubscribed from course with id:{course_id}."}
+
+
+def get_students_by_teacher_id(teacher_id: int) -> list[StudentReport]:
+    query = """
+    SELECT s.student_id, s.first_name, s.last_name, s.email, c.course_id, c.title
+    FROM students s
+    JOIN enrollments e ON s.student_id = e.students_student_id
+    JOIN courses c ON e.courses_course_id = c.course_id
+    WHERE c.owner_id = ?
+    """
+    data = read_query(query, (teacher_id,))
+
+    return [StudentReport.from_query_result(*row) for row in data]
