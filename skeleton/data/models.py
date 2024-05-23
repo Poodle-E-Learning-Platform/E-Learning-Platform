@@ -204,3 +204,12 @@ class GetUser(BaseModel):
 class LoginInformation(BaseModel):
     email: str
     password: str
+
+
+class Tag(BaseModel):
+    tag_id: int
+    tag_name: str
+
+
+class CreateTagRequest(BaseModel):
+    tag_name: str

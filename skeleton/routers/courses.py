@@ -164,8 +164,8 @@ def delete_course(course_id: int, token: str = Header()):
 
 
 # {
-#     "title":"English for Beginners",
-#     "description":"Introductory course into the world of English!",
-#     "objectives":"Give new students a grasp of the basics.",
-#     "owner_id":1
+#     {
+#     "email":"alabala@poodle.com",
+#     "password":"parola123"
+# }
 # }
