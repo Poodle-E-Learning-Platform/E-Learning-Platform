@@ -17,16 +17,16 @@ def create_tag(tag_name: str) -> Tag | BadRequest:
         return BadRequest(content="Tag with this name already exists")
 
 
-# def delete_tag(tag_id: int) -> dict | NotFound:
-#     tag_data = read_query(
-#         """SELECT * FROM course_tags WHERE tag_id = ?""",
-#         (tag_id,)
-#     )
-#     if not tag_data:
-#         return NotFound(content=f"Tag with ID {tag_id} not found")
-#
-#     delete_query(
-#         """DELETE FROM course_tags WHERE tag_id = ?""",
-#         (tag_id,)
-#     )
-#     return {"message": "Tag deleted successfully"}
+def delete_tag(tag_id: int) -> dict | NotFound:
+    tag_data = read_query(
+        """SELECT * FROM course_tags WHERE tag_id = ?""",
+        (tag_id,)
+    )
+    if not tag_data:
+        return NotFound(content=f"Tag with ID {tag_id} not found")
+
+    delete_query(
+        """DELETE FROM course_tags WHERE tag_id = ?""",
+        (tag_id,)
+    )
+    return {"message": "Tag deleted successfully"}
