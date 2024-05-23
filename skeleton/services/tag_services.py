@@ -68,3 +68,30 @@ def remove_tag_from_course(course_id: int, tag_id: int) -> dict | NotFound:
     )
 
     return {"message": "Tag removed from course successfully"}
+
+
+def get_course_with_tags(course_id: int) -> dict | NotFound:
+    course_query = """
+    SELECT title
+    FROM courses
+    WHERE course_id = ?
+    """
+    course_data = read_query(course_query, (course_id,))
+    if not course_data:
+        return NotFound(content=f"Course with ID {course_id} not found!")
+
+    tags_query = """
+    SELECT ct.tag_id, ct.tag_name
+    FROM course_tag_mapping ctm
+    JOIN course_tags ct ON ctm.tag_id = ct.tag_id
+    WHERE ctm.course_id = ?
+    """
+    tags_data = read_query(tags_query, (course_id,))
+
+    course_with_tags = {
+        "course_id": course_id,
+        "course_name": course_data[0][0],
+        "tags": tags_data
+    }
+
+    return course_with_tags
