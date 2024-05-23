@@ -56,15 +56,15 @@ def add_tag_to_course(course_id: int, tag_id: int) -> dict | NotFound | BadReque
     return {"message": "Tag added to course successfully"}
 
 
-# def remove_tag_from_course(course_id: int, tag_id: int) -> dict | NotFound:
-#     mapping_query = "SELECT * FROM course_tag_mapping WHERE course_id = ? AND tag_id = ?"
-#     mapping_data = read_query(mapping_query, (course_id, tag_id))
-#     if not mapping_data:
-#         return NotFound(content=f"Tag with ID {tag_id} is not associated with course ID {course_id}")
-#
-#     delete_query(
-#         "DELETE FROM course_tag_mapping WHERE course_id = ? AND tag_id = ?",
-#         (course_id, tag_id)
-#     )
-#
-#     return {"message": "Tag removed from course successfully"}
+def remove_tag_from_course(course_id: int, tag_id: int) -> dict | NotFound:
+    mapping_query = "SELECT * FROM course_tag_mapping WHERE course_id = ? AND tag_id = ?"
+    mapping_data = read_query(mapping_query, (course_id, tag_id))
+    if not mapping_data:
+        return NotFound(content=f"Tag with ID {tag_id} is not associated with course ID {course_id}")
+
+    delete_query(
+        "DELETE FROM course_tag_mapping WHERE course_id = ? AND tag_id = ?",
+        (course_id, tag_id)
+    )
+
+    return {"message": "Tag removed from course successfully"}
