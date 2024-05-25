@@ -4,6 +4,7 @@ from common.responses import BadRequest, Unauthorized, Forbidden, NotFound, Conf
 from services import courses_service, users_service
 from common.authentication import get_user_or_raise_401
 from common.constants import USER_LOGGED_OUT_RESPONSE
+from services.tag_services import get_all_courses_with_tags
 
 
 courses_router = APIRouter(prefix="/courses")
@@ -160,6 +161,12 @@ def delete_course(course_id: int, token: str = Header()):
     if not result:
         BadRequest(content=f"Failed to delete course with id:{course_id}")
 
+    return result
+
+
+@courses_router.get("/tags")
+async def get_all_courses_with_tags_endpoint():
+    result = get_all_courses_with_tags()
     return result
 
 

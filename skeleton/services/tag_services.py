@@ -95,3 +95,36 @@ def get_course_with_tags(course_id: int) -> dict | NotFound:
     }
 
     return course_with_tags
+
+
+def get_all_courses_with_tags() -> list:
+    courses_query = """
+    SELECT course_id, title
+    FROM courses
+    """
+    courses_data = read_query(courses_query)
+
+    courses_with_tags = []
+
+    for course in courses_data:
+        course_id = course[0]
+        course_name = course[1]
+
+        tags_query = """
+        SELECT ct.tag_id, ct.tag_name
+        FROM course_tag_mapping ctm
+        JOIN course_tags ct ON ctm.tag_id = ct.tag_id
+        WHERE ctm.course_id = ?
+        """
+        tags_data = read_query(tags_query, (course_id,))
+
+        course_with_tags = {
+            "course_id": course_id,
+            "course_name": course_name,
+            "tags": tags_data
+        }
+
+        courses_with_tags.append(course_with_tags)
+
+    return courses_with_tags
+
