@@ -12,6 +12,19 @@ courses_router = APIRouter(prefix="/courses")
 
 @courses_router.get("/teachers")
 def get_all_teacher_courses(token: str = Header()):
+    """
+        Retrieve all courses created by the logged-in teacher.
+
+        Parameters:
+        - token: str
+            The JWT token provided in the header.
+
+        Returns:
+        - List: A list of courses created by the teacher.
+        - Unauthorized: If the token is blacklisted.
+        - Forbidden: If the user is not a teacher.
+        - NotFound: If the teacher has not created any courses.
+        """
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
@@ -32,6 +45,19 @@ def get_all_teacher_courses(token: str = Header()):
 
 @courses_router.get("/students")
 def get_all_student_courses(token: str = Header()):
+    """
+        Retrieve all courses the logged-in student is enrolled in.
+
+        Parameters:
+        - token: str
+            The JWT token provided in the header.
+
+        Returns:
+        - List: A list of courses the student is enrolled in.
+        - Unauthorized: If the token is blacklisted.
+        - Forbidden: If the user is not a student.
+        - NotFound: If the student is not enrolled in any courses.
+        """
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
@@ -52,6 +78,25 @@ def get_all_student_courses(token: str = Header()):
 
 @courses_router.get("/{course_id}/teachers")
 def get_teacher_course_by_id(course_id: int, order: str = "asc", title: str = None, token: str = Header()):
+    """
+        Retrieve a specific course created by the logged-in teacher.
+
+        Parameters:
+        - course_id: int
+            The ID of the course to retrieve.
+        - order: str, optional
+            The order in which to retrieve the sections in the course (default is "asc").
+        - title: str, optional
+            The title filter for the sections in the course (default is None).
+        - token: str
+            The JWT token provided in the header.
+
+        Returns:
+        - Course: The course with the specified ID.
+        - Unauthorized: If the token is blacklisted.
+        - Forbidden: If the user is not a teacher or not the owner of the course.
+        - NotFound: If the course is not found.
+        """
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
@@ -75,6 +120,25 @@ def get_teacher_course_by_id(course_id: int, order: str = "asc", title: str = No
 
 @courses_router.get("/{course_id}/students")
 def get_student_course_by_id(course_id: int, order: str = "asc", title: str = None, token: str = Header()):
+    """
+        Retrieve a specific course the logged-in student is enrolled in.
+
+        Parameters:
+        - course_id: int
+            The ID of the course to retrieve.
+        - order: str, optional
+            The order in which to retrieve the sections in the course (default is "asc").
+        - title: str, optional
+            The title filter for the sections in the course (default is None).
+        - token: str
+            The JWT token provided in the header.
+
+        Returns:
+        - Course: The course with the specified ID.
+        - Unauthorized: If the token is blacklisted.
+        - Forbidden: If the user is not a student.
+        - NotFound: If the course is not found.
+        """
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
@@ -95,6 +159,21 @@ def get_student_course_by_id(course_id: int, order: str = "asc", title: str = No
 
 @courses_router.post("/")
 async def create_course(data: CreateCourse, token: str = Header()):
+    """
+        Create a new course.
+
+        Parameters:
+        - data: CreateCourse
+            The data for the new course.
+        - token: str
+            The JWT token provided in the header.
+
+        Returns:
+        - Course: The created course.
+        - Unauthorized: If the token is blacklisted.
+        - Forbidden: If the user is not a teacher.
+        - BadRequest: If the course title already exists or other error occurs.
+        """
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
@@ -112,6 +191,23 @@ async def create_course(data: CreateCourse, token: str = Header()):
 
 @courses_router.put("/{course_id}")
 def update_course_details(course_id: int, data: UpdateCourse, token: str = Header()):
+    """
+        Update the details of an existing course.
+
+        Parameters:
+        - course_id: int
+            The ID of the course to update.
+        - data: UpdateCourse
+            The new data for the course.
+        - token: str
+            The JWT token provided in the header.
+
+        Returns:
+        - Course: The updated course.
+        - Unauthorized: If the token is blacklisted.
+        - Forbidden: If the user is not the owner of the course.
+        - NotFound: If the course is not found.
+        """
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
@@ -135,6 +231,22 @@ def update_course_details(course_id: int, data: UpdateCourse, token: str = Heade
 
 @courses_router.delete("/{course_id}")
 def delete_course(course_id: int, token: str = Header()):
+    """
+        Delete an existing course.
+
+        Parameters:
+        - course_id: int
+            The ID of the course to delete.
+        - token: str
+            The JWT token provided in the header.
+
+        Returns:
+        - dict: A message indicating the course was successfully deleted.
+        - Unauthorized: If the user is not a teacher or if the token is blacklisted.
+        - NotFound: If the course is not found.
+        - Conflict: If the course is already deleted.
+        - BadRequest: If the user is not the owner of the course or if deletion fails.
+        """
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
@@ -166,6 +278,12 @@ def delete_course(course_id: int, token: str = Header()):
 
 @courses_router.get("/tags")
 async def get_all_courses_with_tags_endpoint():
+    """
+        Retrieve all courses along with their associated tags.
+
+        Returns:
+        - List: A list of courses along with their tags.
+        """
     result = get_all_courses_with_tags()
     return result
 
