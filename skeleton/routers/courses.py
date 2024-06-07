@@ -169,10 +169,3 @@ async def get_all_courses_with_tags_endpoint():
     result = get_all_courses_with_tags()
     return result
 
-
-# {
-#     {
-#     "email":"alabala@poodle.com",
-#     "password":"parola123"
-# }
-# }
