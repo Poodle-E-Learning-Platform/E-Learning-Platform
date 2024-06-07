@@ -9,6 +9,19 @@ enrollments_router = APIRouter(prefix="/enrollments")
 
 @enrollments_router.get("/reports/students")
 def get_teacher_students_report(token: str = Header()):
+    """
+        Generate a report for a teacher about his students.
+
+        Parameters:
+        - token: str
+            The authentication token provided in the header.
+
+        Returns:
+        - List of students: The students enrolled in the teacher's courses.
+        - Forbidden: If the user is not a teacher.
+        - NotFound: If no students are found for the given teacher's courses.
+        - Unauthorized: If the token is blacklisted.
+        """
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
@@ -29,6 +42,22 @@ def get_teacher_students_report(token: str = Header()):
 
 @enrollments_router.post("/courses/{course_id}/subscribe")
 def subscribe_to_course(course_id: int, token: str = Header()):
+    """
+        Subscribe a student to a course.
+
+        Parameters:
+        - course_id: int
+            The ID of the course to subscribe to.
+        - token: str
+            The authentication token provided in the header.
+
+        Returns:
+        - Message: A message indicating successful subscription.
+        - Forbidden: If the user is not a student.
+        - NotFound: If the course is not found.
+        - Conflict: If the student is already subscribed to the course or exceeds the premium course limit.
+        - Unauthorized: If the token is blacklisted.
+        """
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
@@ -59,6 +88,22 @@ def subscribe_to_course(course_id: int, token: str = Header()):
 
 @enrollments_router.post("/courses/{course_id}/unsubscribe")
 def unsubscribe_from_course(course_id: int, token: str = Header()):
+    """
+        Unsubscribe a student from a course.
+
+        Parameters:
+        - course_id: int
+            The ID of the course to unsubscribe from.
+        - token: str
+            The authentication token provided in the header.
+
+        Returns:
+        - Message: A message indicating successful withdrawal from the course.
+        - Forbidden: If the user is not a student.
+        - NotFound: If the course is not found.
+        - Conflict: If the student is already not subscribed to the course.
+        - Unauthorized: If the token is blacklisted.
+        """
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
