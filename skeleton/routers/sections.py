@@ -11,6 +11,21 @@ sections_router = APIRouter(prefix="/sections")
 
 @sections_router.post("/")
 def create_new_section(data: CreateSection, token: str = Header()):
+    """
+        Create a new section within a course.
+
+        Parameters:
+        - data: CreateSection
+            The data required to create a new section.
+        - token: str
+            The authentication token provided in the header.
+
+        Returns:
+        - Section: The created section object if successful.
+        - Forbidden: If the user is not a teacher or does not own the course.
+        - BadRequest: If section creation fails.
+        - Unauthorized: If the token is blacklisted.
+        """
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
@@ -37,6 +52,23 @@ def create_new_section(data: CreateSection, token: str = Header()):
 
 @sections_router.put("/{section_id}")
 def update_section(section_id: int, data: UpdateSection, token: str = Header()):
+    """
+        Update an existing section.
+
+        Parameters:
+        - section_id: int
+            The ID of the section to be updated.
+        - data: UpdateSection
+            The data required to update the section.
+        - token: str
+            The authentication token provided in the header.
+
+        Returns:
+        - Message: A message indicating success if the section is updated.
+        - NotFound: If the section is not found.
+        - Forbidden: If the user is not a teacher.
+        - Unauthorized: If the token is blacklisted.
+        """
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
@@ -54,6 +86,21 @@ def update_section(section_id: int, data: UpdateSection, token: str = Header()):
 
 @sections_router.delete("/{section_id}")
 def delete_section(section_id: int, token: str = Header()):
+    """
+        Delete an existing section.
+
+        Parameters:
+        - section_id: int
+            The ID of the section to be deleted.
+        - token: str
+            The authentication token provided in the header.
+
+        Returns:
+        - Message: A message indicating success if the section is deleted.
+        - NotFound: If the section is not found or deletion fails.
+        - Forbidden: If the user is not a teacher or not the owner of the section.
+        - Unauthorized: If the token is blacklisted.
+        """
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
