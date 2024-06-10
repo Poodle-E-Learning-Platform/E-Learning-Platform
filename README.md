@@ -96,6 +96,20 @@ Accessible only if the user is authenticated. Authenticated teachers or admins c
    ```bash
    pip install -r requirements.txt
 
+3. Configure the database connection:
+   - In the database module within the project, locate the `get_connection()` function.
+   - Update the function to configure the connection parameters appropriately based on the database you are connecting to. For example:
+   
+   ```python
+   def get_connection() -> Connection:
+       return connect(
+           user="your_username",
+           password="your_password",
+           host="localhost",
+           port=3306,
+           database="learning_platform"
+       )
+
 ## Usage
 
 1. Start the server:
