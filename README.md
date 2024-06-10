@@ -4,7 +4,7 @@
 
 E-learning platform designed for students to search for and enroll in online courses, and for teachers to publish and manage courses. Functionality: Students view and access courses. Teachers create, update, and manage courses, sections, and student enrollments.
 
-## Functional Requirements
+## Functionality
 
 ### Entities
 
@@ -63,6 +63,28 @@ Accessible only if the user is authenticated. Authenticated teachers or admins c
 - Uvicorn
 - MariaDB
 - MySQL
+
+## Prerequisites
+1. Install Python:
+   - Download and install Python from the [official website](https://www.python.org/downloads/).
+   - If you already have Python installed, go directly to the second point.
+2. Install pip:
+   - Ensure pip (Python package installer) is installed with Python. You can check by running `pip --version` in your terminal.
+3. Install a virtual environment tool (optional but recommended):
+   - You can use `venv` which is included with Python: `python -m venv env`
+   - Or install `virtualenv` using pip: `pip install virtualenv`
+4. Install MariaDB Server:
+   - Download and install MariaDB from the [official website](https://mariadb.org/download/).
+   - Follow the instructions for your operating system to complete the installation.
+5. Install MySQL Workbench:
+   - Download and install MySQL Workbench from the [official website](https://www.mysql.com/products/workbench/).
+   - Use MySQL Workbench to manage your MariaDB server. Configure the connection details such as localhost and port as needed.
+6. Run the SQL script from the repo in MySQL Workbench:
+   - Open MySQL Workbench and connect to your MariaDB server.
+   - Open the SQL script file from the cloned repository in MySQL Workbench.
+   - Execute the script to create the database schema and tables.
+7. Set the created schema as the default one in the DBMS:
+   - Once connected to your MariaDB server in MySQL Workbench, set the newly created schema (e.g., `learning_platform`) as the default schema.
 
 ## Installation
 
