@@ -7,7 +7,7 @@ from common.constants import USER_LOGGED_OUT_RESPONSE
 users_router = APIRouter(prefix="/users")
 
 
-@users_router.post("/login")
+@users_router.post("/login", tags=["Users"])
 def user_login(data: LoginInformation):
     """
         Log in a user and return a JWT token.
@@ -27,7 +27,7 @@ def user_login(data: LoginInformation):
     return BadRequest("Incorrect e-mail or password!")
 
 
-@users_router.post("/logout")
+@users_router.post("/logout", tags=["Users"])
 def user_logout(token: str = Header()):
     """
         Log out a user by blacklisting their JWT token.
@@ -50,7 +50,7 @@ def user_logout(token: str = Header()):
     return {"message": "User successfully logged out!"}
 
 
-@users_router.get("/info")
+@users_router.get("/info", tags=["Users"])
 def user_info(token: str = Header()):
     """
         Retrieve information about the logged-in user.
@@ -71,7 +71,7 @@ def user_info(token: str = Header()):
     return Unauthorized(content="Invalid token!")
 
 
-@users_router.post("/register/teachers")
+@users_router.post("/register/teachers", tags=["Users"])
 def register_teacher(data: TeacherRegistration):
     """
         Register a new teacher.
@@ -88,7 +88,7 @@ def register_teacher(data: TeacherRegistration):
     return user if user else BadRequest(f'E-mail "{data.email}" is already in use!')
 
 
-@users_router.post("/register/students")
+@users_router.post("/register/students", tags=["Users"])
 def register_student(data: StudentRegistration):
     """
         Register a new student.
@@ -105,7 +105,7 @@ def register_student(data: StudentRegistration):
     return user if user else BadRequest(content=f'E-mail "{data.email}" is already in use!')
 
 
-@users_router.get("/teachers/info")
+@users_router.get("/teachers/info", tags=["Users"])
 def get_teacher_info(token: str = Header()):
     """
         Retrieve information about the logged-in teacher.
@@ -131,7 +131,7 @@ def get_teacher_info(token: str = Header()):
     return NotFound(content="Teacher not found!")
 
 
-@users_router.put("/teachers/info")
+@users_router.put("/teachers/info", tags=["Users"])
 def update_teacher_info(data: dict, token: str = Header()):
     """
         Update information about the logged-in teacher.
@@ -159,7 +159,7 @@ def update_teacher_info(data: dict, token: str = Header()):
     return BadRequest(content="Failed to update teacher information!")
 
 
-@users_router.put("/student/info")
+@users_router.put("/student/info", tags=["Users"])
 def update_student_info(data: dict, token: str = Header()):
     """
         Update information about the logged-in student.

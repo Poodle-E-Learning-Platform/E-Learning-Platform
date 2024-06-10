@@ -7,7 +7,7 @@ from common.constants import PREMIUM_COURSE_LIMIT, USER_LOGGED_OUT_RESPONSE
 enrollments_router = APIRouter(prefix="/enrollments")
 
 
-@enrollments_router.get("/reports/students")
+@enrollments_router.get("/reports/students", tags=["Enrollments"])
 def get_teacher_students_report(token: str = Header()):
     """
         Generate a report for a teacher about his students.
@@ -40,7 +40,7 @@ def get_teacher_students_report(token: str = Header()):
     return students
 
 
-@enrollments_router.post("/courses/{course_id}/subscribe")
+@enrollments_router.post("/courses/{course_id}/subscribe", tags=["Enrollments"])
 def subscribe_to_course(course_id: int, token: str = Header()):
     """
         Subscribe a student to a course.
@@ -86,7 +86,7 @@ def subscribe_to_course(course_id: int, token: str = Header()):
     return {"message": f"Student with id:{student.student_id} successfully subscribed to course with id:{course_id}."}
 
 
-@enrollments_router.post("/courses/{course_id}/unsubscribe")
+@enrollments_router.post("/courses/{course_id}/unsubscribe", tags=["Enrollments"])
 def unsubscribe_from_course(course_id: int, token: str = Header()):
     """
         Unsubscribe a student from a course.

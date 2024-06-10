@@ -10,7 +10,7 @@ from data.models import Tag, CreateTagRequest
 tags_router = APIRouter(prefix="/tags")
 
 
-@tags_router.post("/", response_model=Tag)
+@tags_router.post("/", response_model=Tag, tags=["Tags"])
 async def create_new_tag(request: CreateTagRequest, token: str = Header(...)):
     """
         Create a new tag.
@@ -39,7 +39,7 @@ async def create_new_tag(request: CreateTagRequest, token: str = Header(...)):
     return tag
 
 
-@tags_router.delete("/{tag_id}")
+@tags_router.delete("/{tag_id}", tags=["Tags"])
 async def remove_tag(tag_id: int, token: str = Header(...)):
     """
         Remove an existing tag.
@@ -68,8 +68,8 @@ async def remove_tag(tag_id: int, token: str = Header(...)):
     return result
 
 
-@tags_router.post("/{tag_id}/courses/{course_id}")
-async def add_tag_to_course_endpoint(tag_id: int, course_id: int, token: str = Header(...)):
+@tags_router.post("/{tag_id}/courses/{course_id}", tags=["Tags"])
+async def add_tag_to_a_course(tag_id: int, course_id: int, token: str = Header(...)):
     """
         Add a tag to a course.
 
@@ -102,8 +102,8 @@ async def add_tag_to_course_endpoint(tag_id: int, course_id: int, token: str = H
     return result
 
 
-@tags_router.delete("/{tag_id}/courses/{course_id}")
-async def remove_tag_from_course_endpoint(tag_id: int, course_id: int, token: str = Header(...)):
+@tags_router.delete("/{tag_id}/courses/{course_id}", tags=["Tags"])
+async def remove_tag_from_its_course(tag_id: int, course_id: int, token: str = Header(...)):
     """
         Remove a tag from a course.
 
@@ -133,8 +133,8 @@ async def remove_tag_from_course_endpoint(tag_id: int, course_id: int, token: st
     return result
 
 
-@tags_router.get("/courses/{course_id}")
-async def get_course_with_tags_endpoint(course_id: int):
+@tags_router.get("/courses/{course_id}", tags=["Tags"])
+async def get_course_with_its_tags(course_id: int):
     """
         Get a course with its associated tags.
 

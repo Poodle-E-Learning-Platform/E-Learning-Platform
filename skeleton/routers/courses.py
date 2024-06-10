@@ -10,7 +10,7 @@ from services.tag_services import get_all_courses_with_tags
 courses_router = APIRouter(prefix="/courses")
 
 
-@courses_router.get("/teachers")
+@courses_router.get("/teachers", tags=["Courses"])
 def get_all_teacher_courses(token: str = Header()):
     """
         Retrieve all courses created by the logged-in teacher.
@@ -43,7 +43,7 @@ def get_all_teacher_courses(token: str = Header()):
     return courses
 
 
-@courses_router.get("/students")
+@courses_router.get("/students", tags=["Courses"])
 def get_all_student_courses(token: str = Header()):
     """
         Retrieve all courses the logged-in student is enrolled in.
@@ -76,7 +76,7 @@ def get_all_student_courses(token: str = Header()):
     return courses
 
 
-@courses_router.get("/{course_id}/teachers")
+@courses_router.get("/{course_id}/teachers", tags=["Courses"])
 def get_teacher_course_by_id(course_id: int, order: str = "asc", title: str = None, token: str = Header()):
     """
         Retrieve a specific course created by the logged-in teacher.
@@ -118,7 +118,7 @@ def get_teacher_course_by_id(course_id: int, order: str = "asc", title: str = No
     return course
 
 
-@courses_router.get("/{course_id}/students")
+@courses_router.get("/{course_id}/students", tags=["Courses"])
 def get_student_course_by_id(course_id: int, order: str = "asc", title: str = None, token: str = Header()):
     """
         Retrieve a specific course the logged-in student is enrolled in.
@@ -157,7 +157,7 @@ def get_student_course_by_id(course_id: int, order: str = "asc", title: str = No
     return course
 
 
-@courses_router.post("/")
+@courses_router.post("/", tags=["Courses"])
 async def create_course(data: CreateCourse, token: str = Header()):
     """
         Create a new course.
@@ -189,7 +189,7 @@ async def create_course(data: CreateCourse, token: str = Header()):
     return course
 
 
-@courses_router.put("/{course_id}")
+@courses_router.put("/{course_id}", tags=["Courses"])
 def update_course_details(course_id: int, data: UpdateCourse, token: str = Header()):
     """
         Update the details of an existing course.
@@ -229,7 +229,7 @@ def update_course_details(course_id: int, data: UpdateCourse, token: str = Heade
     return updated_course
 
 
-@courses_router.delete("/{course_id}")
+@courses_router.delete("/{course_id}", tags=["Courses"])
 def delete_course(course_id: int, token: str = Header()):
     """
         Delete an existing course.
@@ -276,8 +276,8 @@ def delete_course(course_id: int, token: str = Header()):
     return result
 
 
-@courses_router.get("/tags")
-async def get_all_courses_with_tags_endpoint():
+@courses_router.get("/tags", tags=["Courses"])
+async def get_all_courses_with_associated_tags():
     """
         Retrieve all courses along with their associated tags.
 

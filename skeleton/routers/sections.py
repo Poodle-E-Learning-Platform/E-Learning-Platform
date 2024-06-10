@@ -9,7 +9,7 @@ from common.constants import USER_LOGGED_OUT_RESPONSE
 sections_router = APIRouter(prefix="/sections")
 
 
-@sections_router.post("/")
+@sections_router.post("/", tags=["Sections"])
 def create_new_section(data: CreateSection, token: str = Header()):
     """
         Create a new section within a course.
@@ -50,7 +50,7 @@ def create_new_section(data: CreateSection, token: str = Header()):
         return BadRequest(content="Failed to create section!")
 
 
-@sections_router.put("/{section_id}")
+@sections_router.put("/{section_id}", tags=["Sections"])
 def update_section(section_id: int, data: UpdateSection, token: str = Header()):
     """
         Update an existing section.
@@ -84,7 +84,7 @@ def update_section(section_id: int, data: UpdateSection, token: str = Header()):
         return NotFound(content=f"Section with ID {section_id} not found!")
 
 
-@sections_router.delete("/{section_id}")
+@sections_router.delete("/{section_id}", tags=["Sections"])
 def delete_section(section_id: int, token: str = Header()):
     """
         Delete an existing section.

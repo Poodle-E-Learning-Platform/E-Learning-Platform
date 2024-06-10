@@ -229,4 +229,4 @@ class Tag(BaseModel):
 
 
 class CreateTagRequest(BaseModel):
-    tag_name: str = Field(..., title="Tag Name", example="Beginner")
+    tag_name: str = Field(..., title="Tag Name", example="Advanced")

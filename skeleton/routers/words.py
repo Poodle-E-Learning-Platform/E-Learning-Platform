@@ -14,7 +14,7 @@ languages = ["es", "fr", "de", "it", "pt"]
 translate_client = translate.Client()
 
 
-@words_router.get("/random")
+@words_router.get("/random", tags=["Words"])
 def random_word(lang: str = Query(None, title="language", description="The language code(es, fr, de, it, pt)")):
     """
         Get a random word from the specified language and its English translation.
