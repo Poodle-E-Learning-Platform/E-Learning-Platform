@@ -4,7 +4,7 @@ from typing import Optional, List, Dict
 
 class Section(BaseModel):
     section_id: int
-    title: str = Field(..., pattern="^\w{1,100}$", title="Section Title", example="Present Simple Tense")
+    title: str = Field(..., title="Section Title", example="Present Simple Tense")
     content: str = Field(..., title="Section Content",
                          example="The simple present is a verb tense with two main uses...")
     description: Optional[str] = Field(None, title="Section Description",
@@ -27,7 +27,7 @@ class Section(BaseModel):
 
 class CreateSection(BaseModel):
     course_id: int = Field(..., title="Course ID", example=1)
-    title: str = Field(..., pattern="^\w{1,100}$", title="Section Title", example="Past Simple Tense")
+    title: str = Field(..., title="Section Title", example="Past Simple Tense")
     content: str = Field(..., title="Section Content",
                          example="The simple past is a verb tense that is used to talk about things that happened or existed before now...")
     description: Optional[str] = Field(None, title="Section Description", example="Introduction to Past Simple Tense.")
@@ -36,7 +36,7 @@ class CreateSection(BaseModel):
 
 
 class UpdateSection(BaseModel):
-    title: str = Field(..., pattern="^\w{1,100}$", title="Section Title", example="Past Simple Tense")
+    title: str = Field(..., title="Section Title", example="Past Simple Tense")
     content: str = Field(..., title="Section Content",
                          example="Here are the most common irregular verbs in English, with their past tense forms...")
     description: Optional[str] = Field(None, title="Section Description",
@@ -47,7 +47,7 @@ class UpdateSection(BaseModel):
 
 class Course(BaseModel):
     course_id: int
-    title: str = Field(..., pattern="^\w{1,50}$", title="Course Title", example="English A1")
+    title: str = Field(..., title="Course Title", example="English A1")
     description: str = Field(..., title="Course Description",
                              example="Introductory course covering the alphabet, common grammar points and basic words")
     objectives: str = Field(..., title="Course Objectives",
@@ -70,7 +70,7 @@ class Course(BaseModel):
 
 
 class CreateCourse(BaseModel):
-    title: str = Field(..., pattern="^\w{1,50}$", title="Course Title", example="B2 - English")
+    title: str = Field(..., title="Course Title", example="B2 - English")
     description: str = Field(..., title="Course Description",
                              example="A course for students with a good grasp of the basic concepts and applies them on practice.")
     objectives: str = Field(..., title="Course Objectives",
@@ -79,7 +79,7 @@ class CreateCourse(BaseModel):
 
 
 class UpdateCourse(BaseModel):
-    title: str = Field(..., pattern="^\w{1,50}$", title="Course Title", example="A1 - English")
+    title: str = Field(..., title="Course Title", example="A1 - English")
     description: str = Field(..., title="Course Description",
                              example="Introductory course covering the alphabet, common grammar points and basic words")
     objectives: str = Field(..., title="Course Objectives",
@@ -89,7 +89,7 @@ class UpdateCourse(BaseModel):
 
 class CourseWithSections(BaseModel):
     course_id: int
-    title: str = Field(..., pattern="^\w{1,50}$", title="Course Title", example="A1 - English")
+    title: str = Field(..., title="Course Title", example="A1 - English")
     description: str = Field(..., title="Course Description",
                              example="Introductory course covering the alphabet, common grammar points and basic words")
     objectives: str = Field(..., title="Course Objectives",
