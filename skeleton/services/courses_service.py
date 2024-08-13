@@ -5,7 +5,7 @@ from services import users_service
 from common.responses import NotFound, Forbidden
 
 
-def get_all_teacher_courses(teacher_id: int) -> list[CourseWithSections] | NotFound | None:
+def get_all_teacher_courses(teacher_id: int) -> list[CourseWithSections] | None:
     course_query = """select * from courses where owner_id = ?"""
     course_params = (teacher_id,)
     course_data = read_query(course_query, course_params)
@@ -41,29 +41,29 @@ def get_all_teacher_courses(teacher_id: int) -> list[CourseWithSections] | NotFo
     return courses_with_sections
 
 
-def get_teacher_course_by_id(teacher_id: int, course_id: int, order: str = "asc", title: str = None) ->\
-        CourseWithSections | NotFound:
-    course_query = """SELECT * FROM courses WHERE owner_id = ? AND course_id = ?"""
+def get_teacher_course_by_id(teacher_id: int, course_id: int, order: str = "asc", title: str = None) -> \
+        CourseWithSections | None:
+    course_query = """select * from courses where owner_id = ? and course_id = ?"""
     course_params = (teacher_id, course_id)
     course_data = read_query(course_query, course_params)
 
     if not course_data:
-        return NotFound(content=f"Course with ID {course_id} not found!")
+        return None
 
     course_row = course_data[0]
     sections = []
 
-    section_query = """SELECT * FROM sections WHERE course_id = ?"""
+    section_query = """select * from sections where course_id = ?"""
 
     if title:
-        section_query += """ AND title LIKE ?"""
+        section_query += """ and title like ?"""
         section_params = (course_id, f"%{title}%")
     else:
         section_params = (course_id,)
 
-    section_query += """ ORDER BY section_id"""
+    section_query += """ order by section_id"""
     if order.lower() == "desc":
-        section_query += """ DESC"""
+        section_query += """ desc"""
 
     section_data = read_query(section_query, section_params)
 
@@ -83,14 +83,14 @@ def get_teacher_course_by_id(teacher_id: int, course_id: int, order: str = "asc"
     return course_with_sections
 
 
-def get_student_course_by_id(student_id: int, course_id: int, order: str = "asc", title: str = None) ->\
-        CourseWithSections | NotFound:
+def get_student_course_by_id(student_id: int, course_id: int, order: str = "asc", title: str = None) -> \
+        CourseWithSections | NotFound | None:
     course_query = """select * from courses where course_id = ?"""
     course_params = (course_id,)
     course_data = read_query(course_query, course_params)
 
     if not course_data:
-        return NotFound(content=f"Course with ID {course_id} not found!")
+        return None
 
     course_row = course_data[0]
     is_premium = bool(course_row[-2])
@@ -132,13 +132,13 @@ def get_student_course_by_id(student_id: int, course_id: int, order: str = "asc"
     return course_with_sections
 
 
-def get_course_by_id_simpler(course_id) -> Course | NotFound:
+def get_course_by_id_simpler(course_id) -> Course | None:
     course_query = """select * from courses where course_id = ?"""
     course_params = (course_id,)
     course_data = read_query(course_query, course_params)
 
     if not course_data:
-        return NotFound(content=f"Course with ID {course_id} not found!")
+        return None
 
     course_row = course_data[0]
 
@@ -152,7 +152,7 @@ def get_course_by_id_simpler(course_id) -> Course | NotFound:
                   )
 
 
-def get_all_student_courses(student_id: int) -> list[Course] | NotFound | None:
+def get_all_student_courses(student_id: int) -> list[Course] | None:
     enrolled_query = """
     select c.course_id, c.title, c.description, c.objectives, c.owner_id, c.is_premium, c.rating
     from courses c
@@ -185,74 +185,46 @@ def get_all_student_courses(student_id: int) -> list[Course] | NotFound | None:
         courses.extend([Course.from_query_result(*row) for row in non_premium_data])
 
     if not courses:
-        return NotFound(content="Student is not enrolled in any courses yet!")
+        return None
 
     return courses
 
 
-def create_course(user_id: int, data: CreateCourse) -> Course | None | NotFound:
-    teacher = users_service.get_teacher_by_user_id(user_id)
-    if not teacher:
-        return NotFound(content="Teacher not found!")
+def create_course(teacher_id: int, data: CreateCourse) -> Course | None:
+    owner_id = teacher_id
 
-    owner_id = teacher.teacher_id
-
-    try:
-        course_id = insert_query(
-            """insert into courses (title, description, objectives, owner_id, is_premium) values (?, ?, ?, ?, ?)""",
-            (data.title, data.description, data.objectives, owner_id, data.is_premium)
-        )
-        if course_id:
-            return Course(course_id=course_id, title=data.title, description=data.description,
-                          objectives=data.objectives, owner_id=owner_id, is_premium=data.is_premium)
-        return None
-    except IntegrityError:
-        return None
+    course_id = insert_query(
+        """insert into courses (title, description, objectives, owner_id, is_premium) values (?, ?, ?, ?, ?)""",
+        (data.title, data.description, data.objectives, owner_id, data.is_premium)
+    )
+    if course_id:
+        return Course(course_id=course_id, title=data.title, description=data.description,
+                      objectives=data.objectives, owner_id=owner_id, is_premium=data.is_premium)
+    return None
 
 
-def update_course(course_id: int, data: UpdateCourse, user_id: int) -> Course | NotFound | None:
-    teacher = users_service.get_teacher_by_user_id(user_id)
-    if not teacher:
-        return NotFound(content="Teacher not found!")
+def update_course(course_id: int, data: UpdateCourse, teacher_id: int) -> Course | None:
 
-    course = get_teacher_course_by_id(teacher.users_user_id, course_id)
-
-    if not course:
-        return NotFound(content=f"Course with ID {course_id} not found.")
-
-    try:
-        update_query(
-            """UPDATE courses SET title = ?, description = ?, objectives = ?, is_premium = ?
-             WHERE course_id = ? AND owner_id = ?""",
-            (data.title, data.description, data.objectives, data.is_premium, course_id, teacher.teacher_id)
+    rows_affected = update_query(
+            """update courses SET title = ?, description = ?, objectives = ?, is_premium = ?
+             where course_id = ? and owner_id = ?""",
+            (data.title, data.description, data.objectives, data.is_premium, course_id, teacher_id)
         )
 
-        updated_course = get_teacher_course_by_id(user_id, course_id)
-        return updated_course
-    except IntegrityError:
+    if rows_affected == 0:
         return None
 
+    updated_course = get_teacher_course_by_id(teacher_id, course_id)
 
-def delete_course_if_no_enrollments(teacher_id: int, course_id: int) -> dict | NotFound | Forbidden:
-    course_query = """select * from courses where course_id = ? and owner_id = ?"""
-    course_params = (course_id, teacher_id)
-    course_data = read_query(course_query, course_params)
+    return updated_course
 
-    if not course_data:
-        return NotFound(content=f"Course with ID {course_id} not found or you do not own this course!")
 
-    enrollments_query = """select * from enrollments where courses_course_id = ?"""
-    enrollments_params = (course_id,)
-    enrollments_data = read_query(enrollments_query, enrollments_params)
-
-    if enrollments_data:
-        return Forbidden(content=f"Cannot delete course with ID {course_id} because students are enrolled in it!")
-
+def delete_course_if_no_enrollments(course_id: int) -> bool:
     delete_course_query = """delete from courses where course_id = ?"""
     delete_course_params = (course_id,)
-    delete_query(delete_course_query, delete_course_params)
+    result = delete_query(delete_course_query, delete_course_params)
 
-    return {"message": "Course deleted successfully"}
+    return result > 0
 
 
 def is_course_deleted(course_id: int) -> bool:
@@ -261,3 +233,21 @@ def is_course_deleted(course_id: int) -> bool:
     course_data = read_query(course_query, course_params)
 
     return not course_data
+
+
+def is_student_enrolled_in_course(student_id: int, course_id: int) -> bool:
+    enrollment_query = """select 1 from enrollments where students_student_id = ? and courses_course_id = ?"""
+    enrollment_params = (student_id, course_id)
+    enrollment_data = read_query(enrollment_query, enrollment_params)
+
+    return bool(enrollment_data)
+
+
+def course_has_enrolled_students(course_id: int) -> bool:
+    enrollments_query = """select count(*) from enrollments where courses_course_id = ?"""
+    enrollments_data = read_query(enrollments_query, (course_id,))
+
+    if enrollments_data:
+        return enrollments_data[0][0] > 0
+
+    return False

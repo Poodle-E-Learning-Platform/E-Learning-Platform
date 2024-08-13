@@ -9,7 +9,7 @@ from routers.words import words_router
 
 app = FastAPI()
 
-routers = [users_router, courses_router, sections_router, enrollments_router, tags_router, words_router]
+routers = [users_router, courses_router, sections_router, enrollments_router, tags_router] #words_router]
 
 for router in routers:
     app.include_router(router)

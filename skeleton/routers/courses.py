@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Header, HTTPException
-from data.models import Course, CreateCourse, CourseWithSections, UpdateCourse
+from fastapi import APIRouter, Header
+from data.models import CreateCourse, UpdateCourse
 from common.responses import BadRequest, Unauthorized, Forbidden, NotFound, Conflict
 from services import courses_service, users_service
 from common.authentication import get_user_or_raise_401
@@ -24,19 +24,17 @@ def get_all_teacher_courses(token: str = Header()):
         - Unauthorized: If the token is blacklisted.
         - Forbidden: If the user is not a teacher.
         - NotFound: If the teacher has not created any courses.
-        """
+    """
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
         return USER_LOGGED_OUT_RESPONSE
 
     teacher = users_service.get_teacher_by_user_id(user.user_id)
-
     if not teacher:
         return Forbidden(content="User must be a teacher in order to view all courses!")
 
     courses = courses_service.get_all_teacher_courses(teacher.teacher_id)
-
     if not courses:
         return NotFound(content=f"Teacher with id:{teacher.teacher_id} has not created any courses yet")
 
@@ -64,14 +62,12 @@ def get_all_student_courses(token: str = Header()):
         return USER_LOGGED_OUT_RESPONSE
 
     student = users_service.get_student_by_user_id(user.user_id)
-
     if not student:
         return Forbidden(content="User must be a student to access enrolled courses!")
 
     courses = courses_service.get_all_student_courses(student.student_id)
-
     if not courses:
-        return NotFound(content="No courses found for the student.")
+        return NotFound(content="Student is not enrolled in any courses yet!")
 
     return courses
 
@@ -96,19 +92,17 @@ def get_teacher_course_by_id(course_id: int, order: str = "asc", title: str = No
         - Unauthorized: If the token is blacklisted.
         - Forbidden: If the user is not a teacher or not the owner of the course.
         - NotFound: If the course is not found.
-        """
+    """
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
         return USER_LOGGED_OUT_RESPONSE
 
     teacher = users_service.get_teacher_by_user_id(user.user_id)
-
     if not teacher:
         return Forbidden(content="User must be a teacher in order to view all courses!")
 
     course = courses_service.get_teacher_course_by_id(teacher.teacher_id, course_id, order, title)
-
     if not course:
         return NotFound(content=f"Course with id {course_id} not found!")
 
@@ -145,20 +139,23 @@ def get_student_course_by_id(course_id: int, order: str = "asc", title: str = No
         return USER_LOGGED_OUT_RESPONSE
 
     student = users_service.get_student_by_user_id(user.user_id)
-
     if not student:
         return Forbidden(content="User must be a student in order to view a specific course with its sections!")
 
     course = courses_service.get_student_course_by_id(student.student_id, course_id, order, title)
-
     if not course:
         return NotFound(f"Course with id:{course_id} not found!")
+
+    is_enrolled = courses_service.is_student_enrolled_in_course(student.student_id, course.course_id)
+
+    if not is_enrolled and course.is_premium:
+        return Forbidden(content="Access denied. This is a premium course and the student is not enrolled.")
 
     return course
 
 
 @courses_router.post("/", tags=["Courses"])
-async def create_course(data: CreateCourse, token: str = Header()):
+def create_course(data: CreateCourse, token: str = Header()):
     """
         Create a new course.
 
@@ -173,16 +170,17 @@ async def create_course(data: CreateCourse, token: str = Header()):
         - Unauthorized: If the token is blacklisted.
         - Forbidden: If the user is not a teacher.
         - BadRequest: If the course title already exists or other error occurs.
-        """
+    """
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
         return USER_LOGGED_OUT_RESPONSE
 
-    if not users_service.is_teacher(user.user_id):
+    teacher = users_service.get_teacher_by_user_id(user.user_id)
+    if not teacher:
         return Forbidden(content="User is not authorized to create a course!")
 
-    course = courses_service.create_course(user.user_id,data)
+    course = courses_service.create_course(teacher.teacher_id, data)
     if not course:
         return BadRequest(content="Course with this title already exists or other error occurred")
 
@@ -207,17 +205,20 @@ def update_course_details(course_id: int, data: UpdateCourse, token: str = Heade
         - Unauthorized: If the token is blacklisted.
         - Forbidden: If the user is not the owner of the course.
         - NotFound: If the course is not found.
-        """
+    """
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
         return USER_LOGGED_OUT_RESPONSE
 
     teacher = users_service.get_teacher_by_user_id(user.user_id)
-
     if not teacher:
         return Forbidden(content="User is not authorized! Only teachers that are owners "
                                  "can update a course!")
+
+    course = courses_service.get_teacher_course_by_id(teacher.teacher_id, course_id)
+    if not course:
+        return NotFound(content=f"Course with ID {course_id} not found.")
 
     updated_course = courses_service.update_course(course_id, data, user.user_id)
 
@@ -246,19 +247,17 @@ def delete_course(course_id: int, token: str = Header()):
         - NotFound: If the course is not found.
         - Conflict: If the course is already deleted.
         - BadRequest: If the user is not the owner of the course or if deletion fails.
-        """
+    """
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
         return USER_LOGGED_OUT_RESPONSE
 
     teacher = users_service.get_teacher_by_user_id(user.user_id)
-
     if not teacher:
         return Unauthorized(content="User must be a teacher to delete a course!")
 
     course = courses_service.get_course_by_id_simpler(course_id)
-
     if not course:
         return NotFound(content=f"Course with id:{course_id} not found!")
 
@@ -268,22 +267,27 @@ def delete_course(course_id: int, token: str = Header()):
     if teacher.teacher_id != course.owner_id:
         return BadRequest(content=f"Teacher must be owner of course with id:{course_id} in order to delete it!")
 
-    result = courses_service.delete_course_if_no_enrollments(teacher.teacher_id, course_id)
+    course_has_enrolled_students = courses_service.course_has_enrolled_students(course_id)
 
-    if not result:
+    if course_has_enrolled_students:
+        return Forbidden(content=f"Cannot delete course with ID {course_id} because students are enrolled in it!")
+
+    deleted_course = courses_service.delete_course_if_no_enrollments(course_id)
+
+    if not deleted_course:
         BadRequest(content=f"Failed to delete course with id:{course_id}")
 
-    return result
+    return {"message": "Course deleted successfully"}
 
 
 @courses_router.get("/tags", tags=["Courses"])
-async def get_all_courses_with_associated_tags():
+def get_all_courses_with_associated_tags():
     """
         Retrieve all courses along with their associated tags.
 
         Returns:
         - List: A list of courses along with their tags.
-        """
+    """
     result = get_all_courses_with_tags()
     return result
 

@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Header
 from common.authentication import get_user_or_raise_401
+from common.constants import USER_LOGGED_OUT_RESPONSE
 from services import users_service
 from services.tag_services import create_tag, delete_tag, add_tag_to_course, remove_tag_from_course, \
     get_course_with_tags
-from common.responses import CreatedSuccessfully, Forbidden, BadRequest, NotFound
+from common.responses import Forbidden, BadRequest, NotFound
 from data.models import Tag, CreateTagRequest
 
 
@@ -11,7 +12,7 @@ tags_router = APIRouter(prefix="/tags")
 
 
 @tags_router.post("/", response_model=Tag, tags=["Tags"])
-async def create_new_tag(request: CreateTagRequest, token: str = Header(...)):
+def create_new_tag(request: CreateTagRequest, token: str = Header()):
     """
         Create a new tag.
 
@@ -25,9 +26,11 @@ async def create_new_tag(request: CreateTagRequest, token: str = Header(...)):
         - Tag: The created tag object if successful.
         - Forbidden: If the user is not a teacher.
         - BadRequest: If the tag creation fails.
-
-        """
+    """
     user = get_user_or_raise_401(token)
+
+    if users_service.is_token_blacklisted(token):
+        return USER_LOGGED_OUT_RESPONSE
 
     if not users_service.is_teacher(user.user_id):
         return Forbidden(content="Only teachers can create new tags!")
@@ -40,7 +43,7 @@ async def create_new_tag(request: CreateTagRequest, token: str = Header(...)):
 
 
 @tags_router.delete("/{tag_id}", tags=["Tags"])
-async def remove_tag(tag_id: int, token: str = Header(...)):
+def remove_tag(tag_id: int, token: str = Header()):
     """
         Remove an existing tag.
 
@@ -58,6 +61,9 @@ async def remove_tag(tag_id: int, token: str = Header(...)):
         """
     user = get_user_or_raise_401(token)
 
+    if users_service.is_token_blacklisted(token):
+        return USER_LOGGED_OUT_RESPONSE
+
     if not users_service.is_teacher(user.user_id):
         return Forbidden(content="Only teachers can delete tags!")
 
@@ -69,7 +75,7 @@ async def remove_tag(tag_id: int, token: str = Header(...)):
 
 
 @tags_router.post("/{tag_id}/courses/{course_id}", tags=["Tags"])
-async def add_tag_to_a_course(tag_id: int, course_id: int, token: str = Header(...)):
+def add_tag_to_a_course(tag_id: int, course_id: int, token: str = Header()):
     """
         Add a tag to a course.
 
@@ -86,11 +92,14 @@ async def add_tag_to_a_course(tag_id: int, course_id: int, token: str = Header(.
         - NotFound: If the course or tag is not found.
         - Forbidden: If the user is not a teacher.
         - BadRequest: If the operation fails.
-
-        """
+    """
     user = get_user_or_raise_401(token)
 
-    if not users_service.is_teacher(user.user_id):
+    if users_service.is_token_blacklisted(token):
+        return USER_LOGGED_OUT_RESPONSE
+
+    teacher = users_service.is_teacher(user.user_id)
+    if not teacher:
         return Forbidden(content="Only teachers can add tags to courses!")
 
     result = add_tag_to_course(course_id, tag_id)
@@ -103,7 +112,7 @@ async def add_tag_to_a_course(tag_id: int, course_id: int, token: str = Header(.
 
 
 @tags_router.delete("/{tag_id}/courses/{course_id}", tags=["Tags"])
-async def remove_tag_from_its_course(tag_id: int, course_id: int, token: str = Header(...)):
+def remove_tag_from_its_course(tag_id: int, course_id: int, token: str = Header()):
     """
         Remove a tag from a course.
 
@@ -119,11 +128,14 @@ async def remove_tag_from_its_course(tag_id: int, course_id: int, token: str = H
         - Message: Tag removed from course successfully.
         - NotFound: If the course or tag is not found.
         - Forbidden: If the user is not a teacher.
-
-        """
+    """
     user = get_user_or_raise_401(token)
 
-    if not users_service.is_teacher(user.user_id):
+    if users_service.is_token_blacklisted(token):
+        return USER_LOGGED_OUT_RESPONSE
+
+    teacher = users_service.is_teacher(user.user_id)
+    if not teacher:
         return Forbidden(content="Only teachers can remove tags from courses!")
 
     result = remove_tag_from_course(course_id, tag_id)
@@ -134,7 +146,7 @@ async def remove_tag_from_its_course(tag_id: int, course_id: int, token: str = H
 
 
 @tags_router.get("/courses/{course_id}", tags=["Tags"])
-async def get_course_with_its_tags(course_id: int):
+def get_course_with_its_tags(course_id: int):
     """
         Get a course with its associated tags.
 
@@ -146,7 +158,7 @@ async def get_course_with_its_tags(course_id: int):
         - NotFound: If the course is not found.
         - Dictionary: The course with its tags.
 
-        """
+    """
     result = get_course_with_tags(course_id)
     if isinstance(result, NotFound):
         return NotFound(content="Course not found!")

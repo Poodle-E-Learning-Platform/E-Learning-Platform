@@ -19,7 +19,7 @@ def user_login(data: LoginInformation):
         Returns:
         - Dictionary: A dictionary containing the JWT token if login is successful.
         - BadRequest: If the email or password is incorrect.
-        """
+    """
     user = users_service.try_login(data.email, data.password)
     if user:
         token = users_service.create_jwt_token(user.user_id, user.email)
@@ -39,7 +39,7 @@ def user_logout(token: str = Header()):
         Returns:
         - Dictionary: A message indicating successful logout.
         - Unauthorized: If the token is invalid or the user is already logged out.
-        """
+    """
     if not users_service.is_authenticated(token):
         return Unauthorized(content="Invalid token!")
 
@@ -62,12 +62,13 @@ def user_info(token: str = Header()):
         Returns:
         - Dictionary: A dictionary containing the user's ID and email.
         - Unauthorized: If the token is invalid.
-        """
+    """
     payload = users_service.verify_jwt_token(token)
     if payload:
         user = users_service.get_by_id(payload["user_id"])
         if user:
             return {"id": user.user_id, "email": user.email}
+
     return Unauthorized(content="Invalid token!")
 
 
@@ -83,7 +84,7 @@ def register_teacher(data: TeacherRegistration):
         Returns:
         - Teacher: The created teacher object if successful.
         - BadRequest: If the email is already in use.
-        """
+    """
     user = users_service.create_teacher(data)
     return user if user else BadRequest(f'E-mail "{data.email}" is already in use!')
 
@@ -100,7 +101,7 @@ def register_student(data: StudentRegistration):
         Returns:
         - Student: The created student object if successful.
         - BadRequest: If the email is already in use.
-        """
+    """
     user = users_service.create_student(data)
     return user if user else BadRequest(content=f'E-mail "{data.email}" is already in use!')
 
@@ -118,7 +119,7 @@ def get_teacher_info(token: str = Header()):
         - Teacher: The teacher object if found.
         - NotFound: If the teacher is not found.
         - Unauthorized: If the token is blacklisted.
-        """
+    """
     if users_service.is_token_blacklisted(token):
         return USER_LOGGED_OUT_RESPONSE
 
@@ -146,7 +147,7 @@ def update_teacher_info(data: dict, token: str = Header()):
         - Teacher: The updated teacher object if successful.
         - BadRequest: If the update fails.
         - Unauthorized: If the token is blacklisted.
-        """
+    """
     if users_service.is_token_blacklisted(token):
         return USER_LOGGED_OUT_RESPONSE
 
@@ -174,7 +175,7 @@ def update_student_info(data: dict, token: str = Header()):
         - Student: The updated student object if successful.
         - BadRequest: If the update fails.
         - Unauthorized: If the token is blacklisted.
-        """
+    """
     if users_service.is_token_blacklisted(token):
         return USER_LOGGED_OUT_RESPONSE
 

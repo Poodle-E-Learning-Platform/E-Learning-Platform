@@ -7,7 +7,7 @@ from common.responses import NotFound, BadRequest
 def create_tag(tag_name: str) -> Tag | BadRequest:
     try:
         tag_id = insert_query(
-            """INSERT INTO course_tags (tag_name) VALUES (?)""",
+            """insert into course_tags (tag_name) values (?)""",
             (tag_name,)
         )
         if tag_id:

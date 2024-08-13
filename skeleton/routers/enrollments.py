@@ -21,23 +21,22 @@ def get_teacher_students_report(token: str = Header()):
         - Forbidden: If the user is not a teacher.
         - NotFound: If no students are found for the given teacher's courses.
         - Unauthorized: If the token is blacklisted.
-        """
+    """
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
         return USER_LOGGED_OUT_RESPONSE
 
     teacher = users_service.get_teacher_by_user_id(user.user_id)
-
     if not teacher:
         return Forbidden(content="User must be a teacher to generate student reports!")
 
-    students = enrollments_service.get_students_by_teacher_id(teacher.teacher_id)
+    enrolled_students = enrollments_service.get_students_by_teacher_id(teacher.teacher_id)
 
-    if not students:
+    if not enrolled_students:
         return NotFound(content="No students found for the given teacher's courses.")
 
-    return students
+    return enrolled_students
 
 
 @enrollments_router.post("/courses/{course_id}/subscribe", tags=["Enrollments"])
@@ -57,19 +56,17 @@ def subscribe_to_course(course_id: int, token: str = Header()):
         - NotFound: If the course is not found.
         - Conflict: If the student is already subscribed to the course or exceeds the premium course limit.
         - Unauthorized: If the token is blacklisted.
-        """
+    """
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
         return USER_LOGGED_OUT_RESPONSE
 
     student = users_service.get_student_by_user_id(user.user_id)
-
     if not student:
         return Forbidden(content="User must be a student to subscribe to courses!")
 
     course = courses_service.get_course_by_id_simpler(course_id)
-
     if not course:
         return NotFound(content=f"Course with id:{course_id} not found!")
 
@@ -103,19 +100,17 @@ def unsubscribe_from_course(course_id: int, token: str = Header()):
         - NotFound: If the course is not found.
         - Conflict: If the student is already not subscribed to the course.
         - Unauthorized: If the token is blacklisted.
-        """
+    """
     user = get_user_or_raise_401(token)
 
     if users_service.is_token_blacklisted(token):
         return USER_LOGGED_OUT_RESPONSE
 
     student = users_service.get_student_by_user_id(user.user_id)
-
     if not student:
         return Forbidden(content="User must be a student to subscribe to courses!")
 
     course = courses_service.get_course_by_id_simpler(course_id)
-
     if not course:
         return NotFound(content=f"Course with id:{course_id} not found!")
 

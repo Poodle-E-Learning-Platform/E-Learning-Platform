@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query
 import random
-from google.cloud import translate_v2 as translate
+#from google.cloud import translate_v2 as translate
 import os
 from data.word_bank import words
 
@@ -11,7 +11,7 @@ words_router = APIRouter(prefix="/words")
 languages = ["es", "fr", "de", "it", "pt"]
 
 
-translate_client = translate.Client()
+#translate_client = translate.Client()
 
 
 @words_router.get("/random", tags=["Words"])
@@ -36,7 +36,7 @@ def random_word(lang: str = Query(None, title="language", description="The langu
               - word (str): The random word in the specified language.
               - language (str): The language code of the returned word.
               - definition (str): The English translation of the word.
-        """
+    """
     if lang and lang not in languages:
         raise HTTPException(status_code=400, detail="Invalid language code")
 
