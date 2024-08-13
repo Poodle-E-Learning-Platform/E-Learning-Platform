@@ -19,37 +19,37 @@ def create_tag(tag_name: str) -> Tag | BadRequest:
 
 def delete_tag(tag_id: int) -> dict | NotFound:
     tag_data = read_query(
-        """SELECT * FROM course_tags WHERE tag_id = ?""",
+        """select * from course_tags where tag_id = ?""",
         (tag_id,)
     )
     if not tag_data:
         return NotFound(content=f"Tag with ID {tag_id} not found")
 
     delete_query(
-        """DELETE FROM course_tags WHERE tag_id = ?""",
+        """delete from course_tags where tag_id = ?""",
         (tag_id,)
     )
     return {"message": "Tag deleted successfully"}
 
 
 def add_tag_to_course(course_id: int, tag_id: int) -> dict | NotFound | BadRequest:
-    course_query = "SELECT * FROM courses WHERE course_id = ?"
+    course_query = "select * from courses where course_id = ?"
     course_data = read_query(course_query, (course_id,))
     if not course_data:
         return NotFound(content=f"Course with ID {course_id} not found!")
 
-    tag_query = "SELECT * FROM course_tags WHERE tag_id = ?"
+    tag_query = "select * from course_tags where tag_id = ?"
     tag_data = read_query(tag_query, (tag_id,))
     if not tag_data:
         return NotFound(content=f"Tag with ID {tag_id} not found!")
 
-    mapping_query = "SELECT * FROM course_tag_mapping WHERE course_id = ? AND tag_id = ?"
+    mapping_query = "select * from course_tag_mapping where course_id = ? and tag_id = ?"
     mapping_data = read_query(mapping_query, (course_id, tag_id))
     if mapping_data:
         return BadRequest(content=f"Tag with ID {tag_id} is already associated with course ID {course_id}")
 
     insert_query(
-        "INSERT INTO course_tag_mapping (course_id, tag_id) VALUES (?, ?)",
+        "insert into course_tag_mapping (course_id, tag_id) values (?, ?)",
         (course_id, tag_id)
     )
 
@@ -57,13 +57,13 @@ def add_tag_to_course(course_id: int, tag_id: int) -> dict | NotFound | BadReque
 
 
 def remove_tag_from_course(course_id: int, tag_id: int) -> dict | NotFound:
-    mapping_query = "SELECT * FROM course_tag_mapping WHERE course_id = ? AND tag_id = ?"
+    mapping_query = "select * from course_tag_mapping where course_id = ? and tag_id = ?"
     mapping_data = read_query(mapping_query, (course_id, tag_id))
     if not mapping_data:
         return NotFound(content=f"Tag with ID {tag_id} is not associated with course ID {course_id}")
 
     delete_query(
-        "DELETE FROM course_tag_mapping WHERE course_id = ? AND tag_id = ?",
+        "delete from course_tag_mapping where course_id = ? and tag_id = ?",
         (course_id, tag_id)
     )
 
@@ -72,19 +72,19 @@ def remove_tag_from_course(course_id: int, tag_id: int) -> dict | NotFound:
 
 def get_course_with_tags(course_id: int) -> dict | NotFound:
     course_query = """
-    SELECT title
-    FROM courses
-    WHERE course_id = ?
+    select title
+    from courses
+    where course_id = ?
     """
     course_data = read_query(course_query, (course_id,))
     if not course_data:
         return NotFound(content=f"Course with ID {course_id} not found!")
 
     tags_query = """
-    SELECT ct.tag_id, ct.tag_name
-    FROM course_tag_mapping ctm
-    JOIN course_tags ct ON ctm.tag_id = ct.tag_id
-    WHERE ctm.course_id = ?
+    select ct.tag_id, ct.tag_name
+    from course_tag_mapping ctm
+    join course_tags ct on ctm.tag_id = ct.tag_id
+    where ctm.course_id = ?
     """
     tags_data = read_query(tags_query, (course_id,))
 
@@ -99,8 +99,8 @@ def get_course_with_tags(course_id: int) -> dict | NotFound:
 
 def get_all_courses_with_tags() -> list:
     courses_query = """
-    SELECT course_id, title
-    FROM courses
+    select course_id, title
+    from courses
     """
     courses_data = read_query(courses_query)
 
@@ -111,10 +111,10 @@ def get_all_courses_with_tags() -> list:
         course_name = course[1]
 
         tags_query = """
-        SELECT ct.tag_id, ct.tag_name
-        FROM course_tag_mapping ctm
-        JOIN course_tags ct ON ctm.tag_id = ct.tag_id
-        WHERE ctm.course_id = ?
+        select ct.tag_id, ct.tag_name
+        from course_tag_mapping ctm
+        join course_tags ct on ctm.tag_id = ct.tag_id
+        where ctm.course_id = ?
         """
         tags_data = read_query(tags_query, (course_id,))
 
